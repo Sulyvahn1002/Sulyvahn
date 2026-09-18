@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sulyvahn">
+<title>Sulyvahn Lothric — SR6</title>
+<style>
+/* ─── Tokens ─────────────────────────────────────────────── */
+:root{
+  --bg:#0a0c0d; --panel:#14181a; --panel2:#191e20;
+  --border:#262d2f; --bordersoft:#1d2325;
+  --text:#d8dfe1; --muted:#7c8b8f; --muted2:#526064;
+  --accent:#35d0b0;
+  --red:#e0483e;
+  --purple:#a56bf0;
+  --blue:#35b0e0;
+  --gold:#e0a83e;
+  --mono:'ui-monospace',Menlo,Consolas,monospace;
+  --disp:-apple-system-headline,system-ui,sans-serif;
+  --sans:-apple-system,BlinkMacSystemFont,sans-serif;
+  --nav-h:env(safe-area-inset-bottom,0px);
+  --nav-bar:72px;
+  --tab-bar:56px;
+}
+
+/* ─── Reset ──────────────────────────────────────────────── */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+html{height:100%;height:-webkit-fill-available;overflow:hidden;}body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:var(--sans);font-size:15px;height:100%;height:-webkit-fill-available;overflow:hidden;}
+
+/* ─── Layout ──────────────────────────────────────────────── */
+#root{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available;height:100dvh;width:100%;overflow:hidden;position:relative;}
+
+/* ─── Hero header ─────────────────────────────────────────── */
+.hero{
+  flex-shrink:0;
+  background:linear-gradient(135deg,rgba(53,208,176,.07),rgba(165,107,240,.05));
+  border-bottom:1px solid var(--border);
+  padding:14px 20px 10px;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));
+  display:grid;grid-template-columns:1fr auto auto auto;
+  gap:10px;align-items:center;flex-shrink:0;
+}
+.hero-name{font-size:22px;font-weight:700;letter-spacing:.3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hero-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;}
+.hero-pill{
+  background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  padding:6px 10px;text-align:center;min-width:64px;
+}
+.hero-pill .pl{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;}
+.hero-pill .pv{font-size:18px;font-weight:700;line-height:1.1;}
+.hero-pill .pv small{font-size:10px;color:var(--muted);font-weight:400;}
+
+/* ─── Tab bar ────────────────────────────────────────────── */
+.tabbar{
+  flex-shrink:0;
+  display:flex;background:var(--panel);border-bottom:1px solid var(--border);
+  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
+  -webkit-overflow-scrolling:touch;
+}
+.tabbar::-webkit-scrollbar{display:none;}
+.tabbtn{
+  flex:0 0 auto;padding:0 16px;height:var(--tab-bar);
+  font-family:var(--mono);font-size:11.5px;text-transform:uppercase;
+  letter-spacing:.6px;color:var(--muted);white-space:nowrap;
+  background:none;border:none;cursor:pointer;
+  border-bottom:2px solid transparent;
+  display:flex;align-items:center;gap:6px;
+  -webkit-user-select:none;user-select:none;
+}
+.tabbtn.active{color:var(--tabcolor,var(--accent));border-bottom-color:var(--tabcolor,var(--accent));}
+.tabbtn svg{width:14px;height:14px;fill:currentColor;}
+
+/* ─── Panels ─────────────────────────────────────────────── */
+.panels{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.panel{display:none;padding:18px 16px 100px;}
+.panel.active{display:block;}
+
+/* ─── Section header ─────────────────────────────────────── */
+.sec{
+  font-family:var(--mono);font-size:11px;text-transform:uppercase;
+  letter-spacing:1px;color:var(--seccolor,var(--accent));
+  margin:22px 0 10px;padding-bottom:7px;
+  border-bottom:1px solid var(--bordersoft);
+  display:flex;align-items:center;gap:7px;
+}
+.sec::before{content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--seccolor,var(--accent));flex-shrink:0;}
+.sec:first-child{margin-top:0;}
+
+/* ─── Attribute grid ─────────────────────────────────────── */
+.attrs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.attr{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:8px 6px 6px;text-align:center;}
+.attr label{display:block;font-family:var(--mono);font-size:9px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;}
+.attr .baseinput{
+  width:100%;text-align:center;background:var(--panel2);
+  border:1px solid var(--bordersoft);border-radius:5px;
+  color:var(--text);font-size:21px;font-weight:700;padding:4px 0;
+  -webkit-appearance:none;appearance:none;outline:none;
+}
+.attr .baseinput:focus{border-color:var(--accent);}
+.attr .modrow{display:flex;align-items:center;gap:3px;margin-top:6px;}
+.attr .stepbtn{
+  flex:0 0 30px;height:30px;background:var(--bg);
+  border:1px solid var(--bordersoft);border-radius:5px;
+  color:var(--muted);font-size:18px;font-weight:300;line-height:1;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  -webkit-user-select:none;user-select:none;
+  transition:border-color .1s,color .1s;
+}
+.attr .stepbtn:active{border-color:var(--gold);color:var(--gold);background:var(--panel2);}
+.attr .modval{
+  flex:1;text-align:center;font-family:var(--mono);font-size:14px;
+  font-weight:700;color:var(--muted);
+}
+.attr .modval.on{color:var(--gold);}
+.attr .eff{
+  font-family:var(--mono);font-size:12px;
+  color:var(--gold);font-weight:700;text-align:center;margin-top:2px;
+  min-height:16px;
+}
+
+/* ─── Monitors ───────────────────────────────────────────── */
+.monitor-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.monitor-label{font-family:var(--mono);font-size:10px;color:var(--muted);min-width:130px;}
+.boxes{display:flex;flex-wrap:wrap;gap:4px;}
+.box{
+  width:34px;height:34px;border:2px solid var(--border);border-radius:5px;
+  cursor:pointer;background:var(--panel);
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  transition:background .1s,border-color .1s;
+  -webkit-user-select:none;user-select:none;
+}
+.box.marked{background:var(--red);border-color:var(--red);}
+.box.danger{border-color:rgba(224,72,62,0.4);background:rgba(224,72,62,0.06);}
+.box.danger.marked{background:var(--red);border-color:var(--red);box-shadow:0 0 6px rgba(224,72,62,0.5);}
+
+/* ─── Stat cards ─────────────────────────────────────────── */
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.statgrid.three{grid-template-columns:1fr 1fr 1fr;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;border-left:3px solid var(--seccolor,var(--accent));}
+.stat .sl{font-family:var(--mono);font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.stat .sv{font-size:22px;font-weight:700;line-height:1.1;}
+.stat .sv small{font-size:11px;color:var(--muted);font-weight:400;}
+
+/* ─── Fields ─────────────────────────────────────────────── */
+.field{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:9px 12px;margin-bottom:8px;}
+.field label{display:block;font-family:var(--mono);font-size:10px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.field input,.field select,.field textarea{
+  width:100%;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--mono);font-size:14px;padding:0;
+  -webkit-appearance:none;appearance:none;
+}
+.field select{-webkit-appearance:auto;appearance:auto;}
+.field textarea{resize:vertical;font-size:13px;line-height:1.6;}
+.fieldrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fieldrow.three{grid-template-columns:1fr 1fr 1fr;}
+
+/* ─── Tables → Card list on iPad ─────────────────────────── */
+.card-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.card{background:var(--panel);border:1px solid var(--border);
+  border-radius:8px;padding:11px 12px;position:relative;}
+.card-cols{display:grid;gap:6px;}
+.card-del{position:absolute;top:8px;right:8px;
+  background:none;border:1px solid var(--border);color:var(--muted);
+  border-radius:4px;padding:3px 7px;font-size:12px;cursor:pointer;}
+.card-del:active{border-color:var(--red);color:var(--red);}
+.card .cl{font-family:var(--mono);font-size:9px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;}
+.card input,.card select,.card textarea{
+  width:100%;background:var(--panel2);border:1px solid var(--bordersoft);
+  border-radius:5px;color:var(--text);font-family:var(--mono);
+  font-size:13px;padding:6px 8px;outline:none;
+}
+.card input:focus,.card select:focus,.card textarea:focus{border-color:var(--seccolor,var(--accent));}
+.add-btn{
+  width:100%;padding:12px;background:none;
+  border:1px dashed var(--border);border-radius:8px;
+  color:var(--seccolor,var(--accent));font-family:var(--mono);
+  font-size:12px;cursor:pointer;margin-top:2px;
+  -webkit-user-select:none;
+}
+.add-btn:active{background:var(--panel);}
+
+/* ─── Hints ──────────────────────────────────────────────── */
+.hint{font-family:var(--mono);font-size:11px;color:var(--muted2);
+  line-height:1.6;margin:6px 0 10px;padding:0 2px;}
+
+/* ─── Reflexe Steigern single field ─────────────────────── */
+.reflex-field{
+  background:var(--panel);border:1px solid var(--purple);border-radius:8px;
+  padding:10px 12px;margin-bottom:10px;
+}
+.reflex-field label{display:block;font-family:var(--mono);font-size:10px;
+  color:var(--purple);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.reflex-field input{width:100%;background:transparent;border:none;
+  outline:none;color:var(--text);font-family:var(--mono);font-size:18px;
+  font-weight:700;-webkit-appearance:none;padding:0;}
+.reset-btn{
+  width:100%;padding:11px;background:none;
+  border:1px solid var(--border);border-radius:8px;
+  color:var(--muted);font-family:var(--mono);font-size:11px;
+  text-transform:uppercase;letter-spacing:.5px;cursor:pointer;
+  margin-bottom:12px;
+}
+.reset-btn:active{border-color:var(--red);color:var(--red);}
+
+/* ─── Checkbox toggle ─────────────────────────────────────── */
+.toggle-row{display:flex;align-items:center;gap:10px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:8px;padding:11px 12px;margin-bottom:8px;}
+.toggle-row label{flex:1;font-family:var(--mono);font-size:12px;color:var(--text);}
+.toggle-row input[type="checkbox"]{
+  width:22px;height:22px;accent-color:var(--purple);
+  flex-shrink:0;cursor:pointer;
+}
+.toggle-row.active{border-color:var(--purple);}
+
+/* ─── Calc output cards ───────────────────────────────────── */
+.calc-out{
+  background:var(--panel2);border:1px solid var(--border);
+  border-left:3px solid var(--purple);border-radius:8px;
+  padding:10px 12px;margin-bottom:8px;
+}
+.calc-out .cl{font-family:var(--mono);font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.calc-out .cv{font-size:24px;font-weight:700;}
+.calc-out .cv small{font-size:12px;color:var(--muted);font-weight:400;}
+.warn{color:var(--red);font-family:var(--mono);font-size:11.5px;
+  font-weight:600;padding:6px 0;}
+
+/* ─── Bottom nav (portrait / split view safety) ──────────── */
+.bottomnav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(20,24,26,.96);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  z-index:99;display:none;
+}
+
+/* ─── Spell table (compact 2-col card) ───────────────────── */
+.spell-card .name{font-weight:600;font-size:14px;margin-bottom:6px;}
+.spell-meta{display:flex;flex-wrap:wrap;gap:5px;}
+.spell-chip{background:var(--panel2);border:1px solid var(--bordersoft);
+  border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:11px;
+  color:var(--muted);}
+.spell-chip.combat{border-color:var(--red);color:var(--red);}
+
+/* ─── Astralkampf readout group ──────────────────────────── */
+.astral-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+
+/* ─── Skill table ─────────────────────────────────────────── */
+.skill-row{display:flex;align-items:center;gap:8px;padding:9px 0;
+  border-bottom:1px solid var(--bordersoft);}
+.skill-row:last-child{border:none;}
+.skill-name{flex:1;font-size:13px;}
+.skill-attr{font-family:var(--mono);font-size:11px;color:var(--muted);
+  width:72px;text-align:center;}
+.skill-rating{
+  width:44px;text-align:center;background:var(--panel2);
+  border:1px solid var(--bordersoft);border-radius:5px;
+  color:var(--text);font-family:var(--mono);font-size:14px;
+  font-weight:700;padding:4px 0;outline:none;
+}
+.skill-spec{flex:1.2;background:var(--panel2);border:1px solid var(--bordersoft);
+  border-radius:5px;color:var(--muted);font-family:var(--mono);font-size:11px;
+  padding:5px 7px;outline:none;}
+
+/* ─── iPad landscape split: sidebar + content ────────────── */
+@media (min-width:768px) and (orientation:landscape){
+  #root{flex-direction:row;}
+  .sidebar{
+    width:200px;flex-shrink:0;
+    background:var(--panel);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    padding-top:env(safe-area-inset-top,0px);
+    overflow-y:scroll;
+    min-height:0;
+  }
+  .hero{grid-column:1/-1;grid-template-columns:1fr;border-bottom:none;
+    border-right:1px solid var(--border);}
+  .hero{padding:14px 14px 10px;}
+  .hero-pills{display:flex;flex-direction:column;gap:6px;
+    padding:0 14px 14px;}
+  .hero-pill{text-align:left;min-width:unset;}
+  .tabbar{display:none;}
+  .sidebar-nav{display:flex;flex-direction:column;flex:1;}
+  .sidebar-btn{
+    display:flex;align-items:center;gap:9px;
+    padding:12px 14px;color:var(--muted);
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;
+    letter-spacing:.5px;border:none;background:none;cursor:pointer;
+    border-left:2px solid transparent;text-align:left;
+    -webkit-user-select:none;
+  }
+  .sidebar-btn svg{width:15px;height:15px;fill:currentColor;flex-shrink:0;}
+  .sidebar-btn.active{color:var(--tabcolor,var(--accent));
+    border-left-color:var(--tabcolor,var(--accent));
+    background:rgba(255,255,255,.04);}
+  .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .panels{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .panel{padding:20px 22px 40px;}
+  .attrs{grid-template-columns:repeat(5,1fr);}
+}
+
+@media (max-width:767px),(orientation:portrait){
+  .sidebar{display:none;}
+  .tabbar{display:flex;}
+}
+</style>
+</head>
+<body>
+<div id="root">
+  <!-- ── Sidebar (landscape) ── -->
+  <div class="sidebar">
+    <div class="hero" style="grid-template-columns:1fr;">
+      <div>
+        <div class="hero-name" id="sideCharName">Sulyvahn Lothric</div>
+        <div class="hero-sub">Elf · Dalakitnon · Ordo Maximus</div>
+      </div>
+    </div>
+    <div class="hero-pills">
+      <div class="hero-pill">
+        <div class="pl">Initiative</div>
+        <div class="pv" id="sideInit">—</div>
+      </div>
+      <div class="hero-pill">
+        <div class="pl">Physisch</div>
+        <div class="pv" id="sidePhys">—/—</div>
+      </div>
+      <div class="hero-pill">
+        <div class="pl">Stun</div>
+        <div class="pv" id="sideStun">—/—</div>
+      </div>
+      <div class="hero-pill">
+        <div class="pl">Edge</div>
+        <div class="pv"><input type="number" min="0" data-field="edgeAvail" style="background:transparent;border:none;color:inherit;font-size:inherit;font-weight:inherit;width:50px;outline:none;-webkit-appearance:none;" placeholder="—"></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn active" data-tab="overview" style="--tabcolor:var(--accent)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="8" y="12" text-anchor="middle" font-size="9" fill="currentColor">Ü</text></svg>Übersicht</button>
+      <button class="sidebar-btn" data-tab="skills" style="--tabcolor:var(--accent)"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="1.5" rx="0.5"/><rect x="2" y="7" width="9" height="1.5" rx="0.5"/><rect x="2" y="11" width="11" height="1.5" rx="0.5"/></svg>Fertigkeiten</button>
+      <button class="sidebar-btn" data-tab="combat" style="--tabcolor:var(--red)"><svg viewBox="0 0 16 16"><path d="M3 13L13 3M10 3h3v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>Kampf</button>
+      <button class="sidebar-btn" data-tab="gear" style="--tabcolor:var(--gold)"><svg viewBox="0 0 16 16"><rect x="3" y="4" width="10" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 4V3M10 4V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Ausrüstung</button>
+      <button class="sidebar-btn" data-tab="magic" style="--tabcolor:var(--purple)"><svg viewBox="0 0 16 16"><polygon points="8,2 10,7 15,7 11,10 13,15 8,12 3,15 5,10 1,7 6,7" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Magie</button>
+      <button class="sidebar-btn" data-tab="matrix" style="--tabcolor:var(--blue)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1"/></svg>Matrix</button>
+      <button class="sidebar-btn" data-tab="qualities" style="--tabcolor:var(--accent)"><svg viewBox="0 0 16 16"><path d="M4 8l3 3 5-5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Qualitäten</button>
+      <button class="sidebar-btn" data-tab="contacts" style="--tabcolor:var(--accent)"><svg viewBox="0 0 16 16"><circle cx="8" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>Kontakte</button>
+      <button class="sidebar-btn" data-tab="lifestyle" style="--tabcolor:var(--gold)"><svg viewBox="0 0 16 16"><rect x="2" y="5" width="12" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 5V3.5a3 3 0 016 0V5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>Lifestyle</button>
+    </nav>
+    <div style="padding:12px 14px;border-top:1px solid var(--bordersoft);display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="add-btn" style="font-size:10px;padding:7px;" onclick="exportJSON()">Exportieren</button>
+      <button class="add-btn" style="font-size:10px;padding:7px;" onclick="document.getElementById('importFile').click()">Importieren</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+      <button class="add-btn" style="font-size:10px;padding:7px;color:var(--muted);" onclick="resetSheet()">Reset</button>
+    </div>
+  </div>
+
+  <!-- ── Main area ── -->
+  <div class="main-area">
+    <!-- portrait hero -->
+    <div class="hero" id="portraitHero" style="display:none;">
+      <div>
+        <div class="hero-name" id="portCharName">Sulyvahn Lothric</div>
+        <div class="hero-sub">Elf · Dalakitnon · Ordo Maximus</div>
+      </div>
+      <div class="hero-pill"><div class="pl">INI</div><div class="pv" id="portInit">—</div></div>
+      <div class="hero-pill"><div class="pl">Phys</div><div class="pv" id="portPhys">—/—</div></div>
+      <div class="hero-pill"><div class="pl">Stun</div><div class="pv" id="portStun">—/—</div></div>
+    </div>
+    <div class="tabbar" id="tabbar">
+      <button class="tabbtn active" data-tab="overview" style="--tabcolor:var(--accent)">Übersicht</button>
+      <button class="tabbtn" data-tab="skills" style="--tabcolor:var(--accent)">Fertigkeiten</button>
+      <button class="tabbtn" data-tab="combat" style="--tabcolor:var(--red)">Kampf</button>
+      <button class="tabbtn" data-tab="gear" style="--tabcolor:var(--gold)">Ausrüstung</button>
+      <button class="tabbtn" data-tab="magic" style="--tabcolor:var(--purple)">Magie</button>
+      <button class="tabbtn" data-tab="matrix" style="--tabcolor:var(--blue)">Matrix</button>
+      <button class="tabbtn" data-tab="qualities" style="--tabcolor:var(--accent)">Qualitäten</button>
+      <button class="tabbtn" data-tab="contacts" style="--tabcolor:var(--accent)">Kontakte</button>
+      <button class="tabbtn" data-tab="lifestyle" style="--tabcolor:var(--gold)">Lifestyle</button>
+    </div>
+
+    <!-- ghost elements for compatibility with original JS that writes to these IDs -->
+    <span id="saveIndicator" style="display:none"></span>
+    <span id="roDeath" style="display:none"></span>
+    <span id="roPhys" style="display:none"></span>
+    <span id="roStun" style="display:none"></span>
+    <span id="roInit" style="display:none"></span>
+
+    <div class="panels" id="panels">
+
+      <!-- ═══════ ÜBERSICHT ═══════ -->
+      <div class="panel active" id="panel-overview">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+          <div style="font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);">● Attribute</div>
+          <button class="reset-btn" style="width:auto;padding:6px 14px;margin:0;font-size:10px;" onclick="resetMods()">Verstärkungen zurücksetzen</button>
+        </div>
+        <div class="hint">Kleines Feld = aktiver Zaubebonus (z. B. Attribut Steigern) → Effektivwert wird live berechnet.</div>
+        <div class="attrs" id="attrGrid">
+          <div class="attr"><label>Konstitution</label><input type="number" min="0" class="baseinput" data-attr="BOD"><div class="modrow"><button class="stepbtn" onclick="stepMod('BOD',-1)">−</button><span class="modval" id="modval-BOD">+0</span><button class="stepbtn" onclick="stepMod('BOD',+1)">+</button></div><div class="eff" id="eff-BOD"></div></div>
+          <div class="attr"><label>Geschicklichkeit</label><input type="number" min="0" class="baseinput" data-attr="AGI"><div class="modrow"><button class="stepbtn" onclick="stepMod('AGI',-1)">−</button><span class="modval" id="modval-AGI">+0</span><button class="stepbtn" onclick="stepMod('AGI',+1)">+</button></div><div class="eff" id="eff-AGI"></div></div>
+          <div class="attr"><label>Reaktion</label><input type="number" min="0" class="baseinput" data-attr="REA"><div class="modrow"><button class="stepbtn" onclick="stepMod('REA',-1)">−</button><span class="modval" id="modval-REA">+0</span><button class="stepbtn" onclick="stepMod('REA',+1)">+</button></div><div class="eff" id="eff-REA"></div></div>
+          <div class="attr"><label>Stärke</label><input type="number" min="0" class="baseinput" data-attr="STR"><div class="modrow"><button class="stepbtn" onclick="stepMod('STR',-1)">−</button><span class="modval" id="modval-STR">+0</span><button class="stepbtn" onclick="stepMod('STR',+1)">+</button></div><div class="eff" id="eff-STR"></div></div>
+          <div class="attr"><label>Willenskraft</label><input type="number" min="0" class="baseinput" data-attr="WIL"><div class="modrow"><button class="stepbtn" onclick="stepMod('WIL',-1)">−</button><span class="modval" id="modval-WIL">+0</span><button class="stepbtn" onclick="stepMod('WIL',+1)">+</button></div><div class="eff" id="eff-WIL"></div></div>
+          <div class="attr"><label>Logik</label><input type="number" min="0" class="baseinput" data-attr="LOG"><div class="modrow"><button class="stepbtn" onclick="stepMod('LOG',-1)">−</button><span class="modval" id="modval-LOG">+0</span><button class="stepbtn" onclick="stepMod('LOG',+1)">+</button></div><div class="eff" id="eff-LOG"></div></div>
+          <div class="attr"><label>Intuition</label><input type="number" min="0" class="baseinput" data-attr="INT"><div class="modrow"><button class="stepbtn" onclick="stepMod('INT',-1)">−</button><span class="modval" id="modval-INT">+0</span><button class="stepbtn" onclick="stepMod('INT',+1)">+</button></div><div class="eff" id="eff-INT"></div></div>
+          <div class="attr"><label>Charisma</label><input type="number" min="0" class="baseinput" data-attr="CHA"><div class="modrow"><button class="stepbtn" onclick="stepMod('CHA',-1)">−</button><span class="modval" id="modval-CHA">+0</span><button class="stepbtn" onclick="stepMod('CHA',+1)">+</button></div><div class="eff" id="eff-CHA"></div></div>
+          <div class="attr"><label>Edge</label><input type="number" min="0" class="baseinput" data-attr="EDG"><div class="modrow"><button class="stepbtn" onclick="stepMod('EDG',-1)">−</button><span class="modval" id="modval-EDG">+0</span><button class="stepbtn" onclick="stepMod('EDG',+1)">+</button></div><div class="eff" id="eff-EDG"></div></div>
+          <div class="attr"><label>Magie</label><input type="number" min="0" class="baseinput" data-attr="MAGRES"><div class="modrow"><button class="stepbtn" onclick="stepMod('MAGRES',-1)">−</button><span class="modval" id="modval-MAGRES">+0</span><button class="stepbtn" onclick="stepMod('MAGRES',+1)">+</button></div><div class="eff" id="eff-MAGRES"></div></div>
+        </div>
+
+        <div class="reflex-field" style="margin-top:14px;">
+          <label>Reflexe Steigern — Nettoerfolge (+1 Init.-Wert &amp; +1 Init.-W6 pro Erfolg, max. 5W6)</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <button class="stepbtn" style="flex:0 0 44px;height:44px;background:var(--bg);border:1px solid var(--bordersoft);border-radius:8px;color:var(--muted);font-size:24px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;" onclick="stepField('initBonusVal', -1, 0, 4)">−</button>
+          <div id="initBonusDisplay" style="flex:1;text-align:center;font-family:var(--mono);font-size:28px;font-weight:700;color:var(--gold);">0</div>
+          <button class="stepbtn" style="flex:0 0 44px;height:44px;background:var(--bg);border:1px solid var(--bordersoft);border-radius:8px;color:var(--muted);font-size:24px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;" onclick="stepField('initBonusVal', +1, 0, 4)">+</button>
+          <input type="hidden" data-field="initBonusVal" value="0">
+        </div>
+        </div>
+
+        <div class="sec" style="--seccolor:var(--accent);margin-top:18px;">Zustandsmonitore</div>
+        <div class="monitor-row">
+          <div class="monitor-label">Physisch <span style="font-size:10px;color:var(--muted2);">(8 + KON/2)</span></div>
+          <div class="boxes" id="physBoxes"></div>
+        </div>
+        <div class="monitor-row">
+          <div class="monitor-label">Stun <span style="font-size:10px;color:var(--muted2);">(8 + WIL/2)</span></div>
+          <div class="boxes" id="stunBoxes"></div>
+          <div style="margin-left:6px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px 8px;text-align:center;flex-shrink:0;">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Malus</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red);" id="roMalus">0</div>
+          </div>
+        </div>
+        <div class="monitor-row" style="margin-top:2px;">
+          <div class="monitor-label">Überzählig <span style="font-size:10px;color:var(--muted2);">(KON × 2 = Tod)</span></div>
+          <div class="boxes" id="overBoxes"></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:4px;padding:0 2px;">
+          Kästchenzahl richtet sich nach dem Basis-Attribut. Zauberboni ändern Monitore nicht (SR6 S. 125). Überzähliger Schaden: wenn Körperlicher Monitor voll ist, fließt weiterer Schaden hierher — bei KON × 2 Kästchen stirbt der Charakter.
+        </div>
+
+        <div class="sec" style="--seccolor:var(--accent);margin-top:4px;">Ressourcen</div>
+        <div class="fieldrow three">
+          <div class="field"><label>Essenz</label><input type="text" data-field="essenz" placeholder="6.0"></div>
+          <div class="field"><label>Karma</label><input type="text" data-field="karma" placeholder="0 / 0"></div>
+          <div class="field"><label>Nuyen</label><input type="text" data-field="nuyen" placeholder="0¥"></div>
+        </div>
+
+        <div class="sec" style="--seccolor:var(--accent);">Herkunft</div>
+        <div class="field"><label>Hintergrund</label><textarea rows="3" data-field="herkunft" placeholder=""></textarea></div>
+      </div>
+
+      <!-- ═══════ FERTIGKEITEN ═══════ -->
+      <div class="panel" id="panel-skills">
+        <div class="sec" style="--seccolor:var(--accent);">Aktive Fertigkeiten</div>
+        <div id="skills-active-list" class="skill-list"></div>
+        <button class="add-btn" onclick="addRow('skills-active')">+ Fertigkeit hinzufügen</button>
+
+        <div class="sec" style="--seccolor:var(--accent);margin-top:20px;">Wissens- &amp; Sprachfertigkeiten</div>
+        <div id="skills-knowledge-cards" class="card-list"></div>
+        <button class="add-btn" onclick="addRow('skills-knowledge')">+ Wissen / Sprache hinzufügen</button>
+
+        <div class="sec" style="--seccolor:var(--accent);margin-top:20px;">Abgeleitete Attributsproben</div>
+        <div id="derived-tests-cards" class="card-list"></div>
+        <button class="add-btn" onclick="addRow('derived-tests')">+ Probe hinzufügen</button>
+      </div>
+
+      <!-- ═══════ KAMPF ═══════ -->
+      <div class="panel" id="panel-combat">
+        <div class="sec" style="--seccolor:var(--red);">Physischer Kampf</div>
+        <div class="statgrid">
+          <div class="stat" style="--seccolor:var(--red)"><div class="sl">Verteidigungswert</div><div class="sv" id="roDefense">—<small> KON+Rüstung</small></div></div>
+          <div class="stat" style="--seccolor:var(--red)"><div class="sl">Schadenswiderstand</div><div class="sv" id="roSoak">—<small> nur KON</small></div></div>
+        </div>
+        <div class="fieldrow">
+          <div class="field"><label>Rüstung (Gerät)</label><input type="text" data-field="armorItem" placeholder="z.B. Urban Explorer"></div>
+          <div class="field"><label>Rüstungsbonus VW</label><input type="number" min="0" data-attr="RUEST" placeholder="0"></div>
+        </div>
+        <div class="field"><label>Modifikationen</label><input type="text" data-field="armorMods"></div>
+
+        <div class="sec" style="--seccolor:var(--purple);margin-top:4px;">Astralkampf</div>
+        <div class="fieldrow">
+          <div class="field"><label>Traditionsattribut</label>
+            <select data-field="astralTradAttr">
+              <option value="">— wählen —</option>
+              <option value="LOG">Logik (Hermetiker)</option>
+              <option value="CHA">Charisma (Schamane)</option>
+            </select>
+          </div>
+          <div class="field"><label>Astrale Panzerung</label><input type="number" min="0" data-attr="ASTRUEST" placeholder="0"></div>
+        </div>
+        <div class="astral-group">
+          <div class="stat" style="--seccolor:var(--purple)"><div class="sl">Angriff (Astral)</div><div class="sv" id="roAstralAtk">—</div></div>
+          <div class="stat" style="--seccolor:var(--purple)"><div class="sl">Verteidigung (Astral)</div><div class="sv" id="roAstralDef">—</div></div>
+          <div class="stat" style="--seccolor:var(--purple)"><div class="sl">Initiative (Astral)</div><div class="sv" id="roAstralInit">—</div></div>
+        </div>
+        <div class="hint">Astralkampf: Schaden durch Körperlichen Angriff = Traditionsattr. ÷2 aufgerundet + Nettoerfolge. Schadenswiderstand = Willenskraft.</div>
+
+        <div class="sec" style="--seccolor:var(--red);margin-top:4px;">Waffen</div>
+        <div id="weapons-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--red);" onclick="addRow('weapons')">+ Waffe hinzufügen</button>
+      </div>
+
+      <!-- ═══════ AUSRÜSTUNG ═══════ -->
+      <div class="panel" id="panel-gear">
+        <div class="sec" style="--seccolor:var(--gold);">Ausrüstung</div>
+        <div id="gear-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--gold);" onclick="addRow('gear')">+ Gegenstand hinzufügen</button>
+
+        <div class="sec" style="--seccolor:var(--gold);margin-top:4px;">Cyberware / Bioware</div>
+        <div id="cyberware-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--gold);" onclick="addRow('cyberware')">+ Implantat hinzufügen</button>
+
+        <div class="sec" style="--seccolor:var(--gold);margin-top:4px;">Fahrzeuge / Drohnen</div>
+        <div id="vehicles-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--gold);" onclick="addRow('vehicles')">+ Fahrzeug hinzufügen</button>
+
+        <div class="sec" style="--seccolor:var(--gold);margin-top:4px;">Wishlist</div>
+        <div id="wishlist-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--gold);" onclick="addRow('wishlist')">+ Wunsch hinzufügen</button>
+      </div>
+
+      <!-- ═══════ MAGIE ═══════ -->
+      <div class="panel" id="panel-magic">
+        <div class="sec" style="--seccolor:var(--purple);">Grundlagen</div>
+        <div class="fieldrow three">
+          <div class="field"><label>Tradition</label><input type="text" data-field="tradition"></div>
+          <div class="field"><label>Drain (WIL + ...)</label><input type="text" data-field="drainAttr"></div>
+          <div class="field"><label>Initiationsgrad</label><input type="text" data-field="initGrad"></div>
+        </div>
+        <div class="fieldrow">
+          <div class="field"><label>Mentorgeist</label><input type="text" data-field="mentorSpirit"></div>
+          <div class="field"><label>Geas</label><input type="text" data-field="geas"></div>
+        </div>
+        <div class="field"><label>Mentorgeist / Geas — Details</label><textarea rows="5" data-field="mentorDetails"></textarea></div>
+
+        <div class="sec" style="--seccolor:var(--purple);margin-top:4px;">Zauber</div>
+        <div class="hint">Zauberprobe: Hexerei + Magie. Kampfzauber Verteidigung: WIL+INT.</div>
+        <div id="spells-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--purple);" onclick="addRow('spells')">+ Zauber hinzufügen</button>
+
+        <div class="sec" style="--seccolor:var(--purple);margin-top:4px;">Kampfzauber-Rechner</div>
+        <div class="fieldrow three">
+          <div class="field"><label>Zauber</label>
+            <select id="czSpell" onchange="czApplyPreset()">
+              <option value="">— wählen —</option>
+              <option value="manablitz">Manablitz (Entzug 4)</option>
+              <option value="manaball">Manaball (Entzug 5)</option>
+              <option value="custom">Eigener Zauber</option>
+            </select>
+          </div>
+          <div class="field"><label>Basis-Entzug</label><input type="number" min="0" id="czBaseDrain" oninput="computeKampfzauber()"></div>
+          <div class="toggle-row" style="margin:0;"><label style="font-size:11px;">Sanguine Kanalisierung (+1 Schaden, 1 Kästchen Kö-Schaden)</label><input type="checkbox" id="czSanguine" onchange="computeKampfzauber()"></div>
+        </div>
+        <div class="fieldrow">
+          <div class="field">
+            <label>Hochdrehen (×Punkte → +2 Entzug je)</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+              <button class="stepbtn" style="flex:0 0 40px;height:40px;background:var(--bg);border:1px solid var(--bordersoft);border-radius:7px;color:var(--muted);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;" onclick="stepCalc('czHochdrehen',-1)">−</button>
+              <div id="czHochdrehen_display" style="flex:1;text-align:center;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--purple);">0</div>
+              <button class="stepbtn" style="flex:0 0 40px;height:40px;background:var(--bg);border:1px solid var(--bordersoft);border-radius:7px;color:var(--muted);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;" onclick="stepCalc('czHochdrehen',+1)">+</button>
+              <input type="hidden" id="czHochdrehen" value="0">
+            </div>
+          </div>
+          <div class="field">
+            <label>Fläche Vergrößern (+1 Entzug je +2m)</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+              <button class="stepbtn" style="flex:0 0 40px;height:40px;background:var(--bg);border:1px solid var(--bordersoft);border-radius:7px;color:var(--muted);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;" onclick="stepCalc('czFlaeche',-1)">−</button>
+              <div id="czFlaeche_display" style="flex:1;text-align:center;font-family:var(--mono);font-size:24px;font-weight:700;color:var(--purple);">0</div>
+              <button class="stepbtn" style="flex:0 0 40px;height:40px;background:var(--bg);border:1px solid var(--bordersoft);border-radius:7px;color:var(--muted);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;" onclick="stepCalc('czFlaeche',+1)">+</button>
+              <input type="hidden" id="czFlaeche" value="0">
+            </div>
+          </div>
+        </div>
+        <div class="statgrid three">
+          <div class="calc-out"><div class="cl">Gesamt-Entzug</div><div class="cv" id="czTotalDrain">—</div></div>
+          <div class="calc-out"><div class="cl">Schadensbonus</div><div class="cv" id="czDamageBonus">—</div></div>
+          <div class="calc-out"><div class="cl">Max. Anpassungen</div><div class="cv" id="czMaxAdjust">—</div></div>
+        </div>
+        <div class="warn" id="czWarning"></div>
+        <div class="sec" style="--seccolor:var(--purple);margin-top:4px;">Erwarteter Entzugsschaden</div>
+        <div class="statgrid three">
+          <div class="calc-out"><div class="cl">Widerstand-Pool</div><div class="cv" id="czDrainPool">—<small> WIL+Trad.</small></div></div>
+          <div class="calc-out"><div class="cl">Ø Schaden</div><div class="cv" id="czExpectedDrainDmg">—</div></div>
+          <div class="calc-out"><div class="cl">Schadenstyp</div><div class="cv" style="font-size:14px;line-height:1.4;" id="czDrainDmgType">—</div></div>
+        </div>
+        <div class="hint">Erwartungswert = 1/3 Erfolgswahrsch. ohne Edge. Körperlich wenn Schaden &gt; Magie-Attribut nach Widerstand.</div>
+
+        <div class="sec" style="--seccolor:var(--purple);margin-top:4px;">Rituale</div>
+        <div id="rituals-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--purple);" onclick="addRow('rituals')">+ Ritual hinzufügen</button>
+
+        <div class="sec" style="--seccolor:var(--purple);margin-top:4px;">Buffs &amp; Debuffs</div>
+        <div id="buffs-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--purple);" onclick="addRow('buffs')">+ Eintrag hinzufügen</button>
+      </div>
+
+      <!-- ═══════ MATRIX ═══════ -->
+      <div class="panel" id="panel-matrix">
+        <div class="sec" style="--seccolor:var(--blue);">Deck / Persona</div>
+        <div class="fieldrow">
+          <div class="field"><label>Deck / Modell</label><input type="text" data-field="deckModel"></div>
+          <div class="field"><label>Living Persona</label><input type="text" data-field="livingPersona"></div>
+        </div>
+        <div class="attrs" style="grid-template-columns:repeat(4,1fr);">
+          <div class="attr"><label>Angriff</label><input type="number" min="0" class="baseinput" data-field="matAttack"></div>
+          <div class="attr"><label>Schleicher</label><input type="number" min="0" class="baseinput" data-field="matSleaze"></div>
+          <div class="attr"><label>Datenverarb.</label><input type="number" min="0" class="baseinput" data-field="matData"></div>
+          <div class="attr"><label>Firewall</label><input type="number" min="0" class="baseinput" data-field="matFirewall"></div>
+        </div>
+        <div class="fieldrow" style="margin-top:8px;">
+          <div class="field"><label>Gerätestufe</label><input type="number" min="0" data-attr="GERAET"></div>
+          <div class="field"><label>Aktueller Modus</label><input type="text" data-field="matInit" placeholder="AR / kaltes Sim / heißes Sim"></div>
+        </div>
+        <div class="monitor-row" style="margin-top:8px;">
+          <div class="monitor-label">Matrix-Zustandsmonitor</div>
+          <div class="boxes" id="matrixBoxes"></div>
+        </div>
+
+        <div class="sec" style="--seccolor:var(--blue);margin-top:4px;">Projekt True Sight (SenseOrb)</div>
+        <div class="attrs" style="grid-template-columns:repeat(3,1fr);">
+          <div class="attr"><label>Gerätestufe</label><input type="number" min="0" class="baseinput" data-field="senseorbGeraet"></div>
+          <div class="attr"><label>Slots</label><input type="number" min="0" class="baseinput" data-field="senseorbSlots"></div>
+          <div class="attr"><label>Angriff</label><input type="number" min="0" class="baseinput" data-field="senseorbAngriff"></div>
+        </div>
+        <div class="attrs" style="grid-template-columns:repeat(4,1fr);margin-top:8px;">
+          <div class="attr"><label>Schleicher</label><input type="number" min="0" class="baseinput" data-field="senseorbSchleicher"></div>
+          <div class="attr"><label>Datenverarb.</label><input type="text" class="baseinput" data-field="senseorbDaten" style="font-size:14px;"></div>
+          <div class="attr"><label>Firewall</label><input type="text" class="baseinput" data-field="senseorbFirewall" style="font-size:14px;"></div>
+        </div>
+        <div class="field" style="margin-top:8px;"><label>Effekte &amp; Lore</label><textarea rows="5" data-field="senseorbDetails"></textarea></div>
+
+        <div class="sec" style="--seccolor:var(--blue);margin-top:4px;">Programme</div>
+        <div id="programs-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--blue);" onclick="addRow('programs')">+ Programm hinzufügen</button>
+      </div>
+
+      <!-- ═══════ QUALITÄTEN ═══════ -->
+      <div class="panel" id="panel-qualities">
+        <div class="sec" style="--seccolor:var(--accent);">Positive Qualitäten</div>
+        <div id="qual-pos-cards" class="card-list"></div>
+        <button class="add-btn" onclick="addRow('qual-pos')">+ Qualität hinzufügen</button>
+        <div class="sec" style="--seccolor:var(--red);margin-top:4px;">Negative Qualitäten</div>
+        <div id="qual-neg-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--red);" onclick="addRow('qual-neg')">+ Qualität hinzufügen</button>
+      </div>
+
+      <!-- ═══════ KONTAKTE ═══════ -->
+      <div class="panel" id="panel-contacts">
+        <div class="sec" style="--seccolor:var(--accent);">Kontakte</div>
+        <div id="contacts-cards" class="card-list"></div>
+        <button class="add-btn" onclick="addRow('contacts')">+ Kontakt hinzufügen</button>
+      </div>
+
+      <!-- ═══════ LIFESTYLE ═══════ -->
+      <div class="panel" id="panel-lifestyle">
+        <div class="sec" style="--seccolor:var(--gold);">Lifestyle</div>
+        <div class="fieldrow three">
+          <div class="field"><label>Typ</label>
+            <select data-field="lifestyleType" onchange="applyLifestyleCost(this.value)">
+              <option value="">— wählen —</option>
+              <option value="0">Auf der Straße (0¥)</option>
+              <option value="500">Squatter (500¥)</option>
+              <option value="2000">Unterschicht (2.000¥)</option>
+              <option value="5000">Mittelschicht (5.000¥)</option>
+              <option value="10000">Oberschicht (10.000¥)</option>
+              <option value="100000">Luxus (100.000¥)</option>
+            </select>
+          </div>
+          <div class="field"><label>Kosten / Monat</label><input type="text" data-field="lifestyleCost"></div>
+          <div class="field"><label>Bezahlt bis</label><input type="text" data-field="lifestylePaid"></div>
+        </div>
+        <div class="field"><label>Wohnort &amp; Details</label><textarea rows="3" data-field="lifestyleDetails"></textarea></div>
+        <div class="sec" style="--seccolor:var(--gold);margin-top:4px;">Verbindliche Ausgaben</div>
+        <div id="expenses-cards" class="card-list"></div>
+        <button class="add-btn" style="--seccolor:var(--gold);" onclick="addRow('expenses')">+ Posten hinzufügen</button>
+      </div>
+
+    </div><!-- /panels -->
+  </div><!-- /main-area -->
+</div><!-- /root -->
+
+<script>
+// ─── Stepper functions (must be defined before boot) ────────────
+function stepCalc(id, delta){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const cur = parseInt(el.value)||0;
+  const next = Math.max(0, Math.min(9, cur + delta));
+  el.value = next;
+  const disp = document.getElementById(id + '_display');
+  if(disp){
+    disp.textContent = next;
+    disp.style.color = next > 0 ? 'var(--purple)' : 'var(--muted)';
+  }
+  computeKampfzauber();
+}
+function stepMod(key, delta){
+  const cur = num(state.mods[key]);
+  const next = Math.max(0, Math.min(9, cur + delta));
+  state.mods[key] = next || '';
+  refreshModDisplay(key);
+  recomputeDerived();
+  markDirty();
+}
+
+function refreshModDisplay(key){
+  const val = num(state.mods[key]);
+  const valEl = document.getElementById('modval-' + key);
+  const effEl = document.getElementById('eff-' + key);
+  if(valEl){
+    valEl.textContent = (val >= 0 ? '+' : '') + val;
+    valEl.classList.toggle('on', val !== 0);
+  }
+  if(effEl){
+    const base = num(state.attrs[key]);
+    if(val !== 0){
+      effEl.textContent = '= ' + (base + val);
+      effEl.classList.add('on');
+    } else {
+      effEl.textContent = '';
+      effEl.classList.remove('on');
+    }
+  }
+}
+
+function refreshAllModDisplays(){
+  ['BOD','AGI','REA','STR','WIL','LOG','INT','CHA','EDG','MAGRES'].forEach(refreshModDisplay);
+}
+
+function stepField(key, delta, min, max){
+  const cur = num(state.fields[key]);
+  const next = Math.max(min, Math.min(max, cur + delta));
+  state.fields[key] = String(next);
+  const inp = document.querySelector(`[data-field="${key}"]`);
+  if(inp) inp.value = next;
+  const disp = document.getElementById('initBonusDisplay');
+  if(disp){
+    disp.textContent = next;
+    disp.style.color = next > 0 ? 'var(--gold)' : 'var(--muted)';
+  }
+  recomputeDerived();
+  markDirty();
+}
+
+// ─── Card/List renderers (replace table system) ──────────────────
+const CARD_SCHEMAS = {
+  'skills-active': {
+    listId:'skills-active-list', isSkillList:true,
+    cols:[{k:'name',ph:'Fertigkeit'},{k:'attr',ph:'Attr.'},{k:'rating',ph:'0'},{k:'spec',ph:'Spezialisierung'}]
+  },
+  'skills-knowledge': {
+    cardsId:'skills-knowledge-cards',
+    cols:[{k:'name',ph:'Fertigkeit'},{k:'type',ph:'Typ',type:'select',options:['Wissen','Sprache']},{k:'rating',ph:'0'},{k:'notes',ph:'Notizen'}],
+    layout:'2+2'
+  },
+  'derived-tests': {
+    cardsId:'derived-tests-cards',
+    cols:[{k:'name',ph:'Probe'},{k:'formula',ph:'Formel'},{k:'value',ph:'Wert'},{k:'notes',ph:'Notizen'}],
+    layout:'2+2'
+  },
+  'weapons': {
+    cardsId:'weapons-cards',
+    cols:[{k:'name',ph:'Waffe'},{k:'dmg',ph:'Schaden'},{k:'mode',ph:'Modus'},{k:'angriff',ph:'AW SN/N/M/W/SW'},{k:'ammo',ph:'Munition'},{k:'notes',ph:'Notizen'}],
+    layout:'3+3'
+  },
+  'gear': {
+    cardsId:'gear-cards',
+    cols:[{k:'name',ph:'Gegenstand'},{k:'rating',ph:'Rating'},{k:'qty',ph:'Menge'},{k:'notes',ph:'Notizen'}],
+    layout:'2+2'
+  },
+  'cyberware': {
+    cardsId:'cyberware-cards',
+    cols:[{k:'name',ph:'Implantat'},{k:'rating',ph:'Rating'},{k:'essence',ph:'Essenz'},{k:'notes',ph:'Notizen'}],
+    layout:'2+2'
+  },
+  'vehicles': {
+    cardsId:'vehicles-cards',
+    cols:[{k:'name',ph:'Name'},{k:'handling',ph:'Handling'},{k:'speed',ph:'Speed'},{k:'notes',ph:'Notizen'}],
+    layout:'2+2'
+  },
+  'wishlist': {
+    cardsId:'wishlist-cards',
+    cols:[{k:'name',ph:'Gegenstand'},{k:'cost',ph:'Kosten'},{k:'notes',ph:'Notizen'}],
+    layout:'2+1'
+  },
+  'spells': {
+    cardsId:'spells-cards', isSpells:true,
+    cols:[{k:'name',ph:'Zauber'},{k:'category',ph:'Kategorie'},{k:'type',ph:'Typ'},{k:'range',ph:'RW'},{k:'duration',ph:'Dauer'},{k:'drain',ph:'Entzug'}]
+  },
+  'rituals': {
+    cardsId:'rituals-cards',
+    cols:[{k:'name',ph:'Ritual'},{k:'threshold',ph:'Schwelle'},{k:'time',ph:'Zeit'},{k:'effect',ph:'Effekt'}],
+    layout:'3+1'
+  },
+  'buffs': {
+    cardsId:'buffs-cards',
+    cols:[{k:'source',ph:'Quelle'},{k:'type',ph:'Typ',type:'select',options:['Bonus','Malus']},{k:'effect',ph:'Effekt'}],
+    layout:'2+1'
+  },
+  'programs': {
+    cardsId:'programs-cards',
+    cols:[{k:'name',ph:'Programm'},{k:'type',ph:'Typ'},{k:'notes',ph:'Notizen'}],
+    layout:'2+1'
+  },
+  'qual-pos': {
+    cardsId:'qual-pos-cards',
+    cols:[{k:'name',ph:'Qualität'},{k:'cost',ph:'Karma'},{k:'notes',ph:'Notizen'}],
+    layout:'2+1'
+  },
+  'qual-neg': {
+    cardsId:'qual-neg-cards',
+    cols:[{k:'name',ph:'Qualität'},{k:'cost',ph:'Karma'},{k:'notes',ph:'Notizen'}],
+    layout:'2+1'
+  },
+  'contacts': {
+    cardsId:'contacts-cards',
+    cols:[{k:'name',ph:'Name'},{k:'role',ph:'Rolle'},{k:'connection',ph:'Conn.'},{k:'loyalty',ph:'Loy.'},{k:'notes',ph:'Notizen'}],
+    layout:'2+3'
+  },
+  'expenses': {
+    cardsId:'expenses-cards',
+    cols:[{k:'name',ph:'Posten'},{k:'cost',ph:'Kosten'},{k:'notes',ph:'Notizen'}],
+    layout:'2+1'
+  },
+  'agents': { cardsId:'agents-cards', cols:[{k:'name',ph:'Agent'},{k:'rating',ph:'Rating'},{k:'notes',ph:'Notizen'}], layout:'2+1' },
+};
+
+function renderCardList(key){
+  const schema = CARD_SCHEMAS[key];
+  if(!schema) return;
+  const rows = state.rows[key] || [];
+
+  if(schema.isSkillList){
+    const el = document.getElementById(schema.listId);
+    if(!el) return;
+    el.innerHTML = '';
+    rows.forEach((row,idx)=>{
+      const div = document.createElement('div');
+      div.className = 'skill-row';
+      div.innerHTML = `
+        <input class="skill-rating" type="number" min="0" value="${row.rating||''}" placeholder="0">
+        <div class="skill-name">${row.name||''}</div>
+        <div class="skill-attr">${row.attr||''}</div>
+        <input class="skill-spec" type="text" value="${row.spec||''}" placeholder="Spezialisierung">
+      `;
+      div.querySelector('.skill-rating').addEventListener('input', e=>{ row.rating=e.target.value; markDirty(); });
+      div.querySelector('.skill-spec').addEventListener('input', e=>{ row.spec=e.target.value; markDirty(); });
+      el.appendChild(div);
+    });
+    return;
+  }
+
+  if(schema.isSpells){
+    const el = document.getElementById(schema.cardsId);
+    if(!el) return;
+    el.innerHTML = '';
+    rows.forEach((row,idx)=>{
+const SPELL_SUMMARIES = {"Attribut Steigern": "Steigert ein gewähltes Attribut des Ziels um 1 pro genutztem Nettoerfolg (max. +4). Probe: HEX+MAG (5−Essenz). Ab dem 2. Nettoerfolg +1 Entzug kumulativ. Edge/Essenz/Magie nicht steigerbar.\n\n🔮 Arkaner Spruch: Sanguis vinculum, corpus transcende. (Blut als Band, überschreite den Körper.)", "Reflexe Steigern": "Steigert Initiative (+1 Wert) und Initiativewürfel (+1W6) pro genutztem Nettoerfolg (max. 5W6 gesamt). Probe: HEX+MAG (5−Essenz). Ab dem 2. Nettoerfolg +1 Entzug kumulativ.\n\n🔮 Arkaner Spruch: Tempus meum, non tuum. (Meine Zeit, nicht deine.)", "Levitieren": "Hebt Personen oder Objekte an (50 kg pro Erfolg). Unwillige Personen: Gegenprobe KON+STÄ, jeder Erfolg senkt die Nettoerfolge. Ziel muss in Sichtweite bleiben, sonst Absturz.\n\n🔮 Arkaner Spruch: Gravitas cedit voluntati. (Die Schwere weicht dem Willen.)", "Verbesserte Unsichtbarkeit": "Macht das Ziel unsichtbar, auch für Kameras und Technik (Status: Unsichtbar Verbessert). Physischer Zauber, kein Manazauber — wirkt auch auf Technik und unbelebte Ziele.\n\n🔮 Arkaner Spruch: Umbra sanguinis, vela me. (Schatten des Blutes, verhülle mich.)", "Stein Beleben": "Wie Holz Beleben, wirkt aber gegen Stein. Belebt unbelebtes Steinmaterial (½ m³ pro Nettoerfolg). Dauer: Zaubernd bestimmt (ZB). Kein Vergleichstest.\n\n🔮 Arkaner Spruch: Lapis, surge. Servus meus esto. (Stein, erhebe dich. Sei mein Diener.)", "Vacuum": "Erzeugt eine Vakuumblase um ein Ziel. Opfer müssen jede Runde KON+WIL würfeln, sonst Betäubungsschaden (beginnt bei 1, steigt jede Runde bis Maximalwert = Erfolge der Hexereiprobe). Gut gegen Fahrzeugbesatzungen ohne Lebenserhaltungssystem.\n\n🔮 Arkaner Spruch: Aer fugit. Nihil restat. (Die Luft flieht. Nichts bleibt.)", "Zauberfinger": "Erschafft unsichtbare telekinetische Hände (1m-Kugel) für feinmotorische Aufgaben. Keine Chirurgen-/Bombenentschärfer-Präzision. Probe mit passender Fertigkeit, Attribut = Nettoerfolge der HEX-Probe. Kein Edge-Einsatz möglich.\n\n🔮 Arkaner Spruch: Manus invisibilis, obedi. (Unsichtbare Hand, gehorche.)", "Manablitz": "Direkter Kampfzauber (Schaden K). Probe: HEX+MAG vs. WIL+INT des Ziels. Kein Widerstand gegen direkten Schaden möglich — Nettoerfolge = Schadenspunkte.\n\n🔮 Arkaner Spruch: Ex cruore, fulmen. — MIT Kanalisierung: Caro mea pretium est. Ex cruore, fulmen.", "Manaball": "Flächenversion von Manablitz (Radius 2m, erweiterbar). Probe: HEX+MAG vs. WIL+INT aller Ziele. Kein Widerstand gegen den Direktschaden — Nettoerfolge = Schaden.\n\n🔮 Arkaner Spruch: Omnes cadent. Sanguis iudicat. — MIT Kanalisierung: Caro mea pretium est. Omnes cadent. Sanguis iudicat.", "Leben Entdecken": "Wahrnehmungszauber. Entdeckt Wesen mit Bewusstsein in Wirkungsbereich. Probe: HEX+MAG vs. KON+WIL. Nettoerfolge bestimmen Detailgrad der Information (1 Erfolg = allgemein, 2 = Form/Funktion, usw.).\n\n🔮 Arkaner Spruch: Pulsus cordis, revela te. (Herzschlag, offenbare dich.)", "Klebstoff": "Klebt Ziel an Oberfläche → Status Bewegungsunfähig. Entzug = Strukturstufe/2 (min. 2). Gegenprobe: Objektwiderstand oder REA+INT. Trennen: NE+MAG vs. STÄ+KON. Übersteigen NE die Strukturstufe → Trennung verursacht NE K-Schaden.\n\n🔮 Arkaner Spruch: Mane. Non tua voluntas hic valet. (Bleib. Dein Wille gilt hier nicht.)"};
+      const isCombat = (row.category||'').toLowerCase().includes('kampf');
+      const summary = SPELL_SUMMARIES[row.name] || '';
+      const card = document.createElement('div');
+      card.className = 'card spell-card';
+      card.innerHTML = `
+        <button class="card-del" onclick="delRow('${key}',${idx})">✕</button>
+        <input type="text" style="font-weight:700;font-size:15px;margin-bottom:6px;display:block;width:90%;background:transparent;border:none;outline:none;color:var(--text);" value="${row.name||''}" placeholder="Zaubername">
+        ${summary ? `<div style="font-family:var(--sans);font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:7px;padding-right:12px;">${summary}</div>` : ''}
+        <div class="spell-meta">
+          <span class="spell-chip ${isCombat?'combat':''}">${row.category||'Kategorie'}</span>
+          <span class="spell-chip">Typ: ${row.type||'—'}</span>
+          <span class="spell-chip">RW: ${row.range||'—'}</span>
+          <span class="spell-chip">Dauer: ${row.duration||'—'}</span>
+          <span class="spell-chip">Entzug: ${row.drain||'—'}</span>
+        </div>
+      `;
+      card.querySelector('input').addEventListener('input', e=>{ row.name=e.target.value; markDirty(); });
+      el.appendChild(card);
+    });
+    return;
+  }
+
+  const el = document.getElementById(schema.cardsId);
+  if(!el) return;
+  el.innerHTML = '';
+  rows.forEach((row,idx)=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    const layout = schema.layout || '';
+    let colsHtml = '';
+    const [top,bot] = layout.includes('+') ? layout.split('+').map(Number) : [schema.cols.length, 0];
+    const makeInput = (col) => {
+      const val = (row[col.k]||'').replace(/"/g,'&quot;');
+      if(col.type==='select'){
+        const opts = col.options.map(o=>`<option${o===row[col.k]?' selected':''}>${o}</option>`).join('');
+        return `<select data-k="${col.k}"><option value="">—</option>${opts}</select>`;
+      }
+      return `<input type="text" data-k="${col.k}" value="${val}" placeholder="${col.ph||''}">`;
+    };
+    const cols = schema.cols;
+    if(layout){
+      const rowA = cols.slice(0, top);
+      const rowB = cols.slice(top, top+bot);
+      const rest = cols.slice(top+bot);
+      const gtcA = rowA.map(_=>'1fr').join(' ');
+      colsHtml += `<div class="card-cols" style="grid-template-columns:${gtcA}">`;
+      rowA.forEach(col=>{ colsHtml += `<div><div class="cl">${col.ph}</div>${makeInput(col)}</div>`; });
+      colsHtml += '</div>';
+      if(rowB.length){
+        const gtcB = rowB.map(_=>'1fr').join(' ');
+        colsHtml += `<div class="card-cols" style="grid-template-columns:${gtcB};margin-top:6px;">`;
+        rowB.forEach(col=>{ colsHtml += `<div><div class="cl">${col.ph}</div>${makeInput(col)}</div>`; });
+        colsHtml += '</div>';
+      }
+      if(rest.length){
+        rest.forEach(col=>{ colsHtml += `<div style="margin-top:6px;"><div class="cl">${col.ph}</div>${makeInput(col)}</div>`; });
+      }
+    } else {
+      colsHtml = `<div class="card-cols" style="grid-template-columns:${cols.map(_=>'1fr').join(' ')}">`;
+      cols.forEach(col=>{ colsHtml += `<div><div class="cl">${col.ph}</div>${makeInput(col)}</div>`; });
+      colsHtml += '</div>';
+    }
+    card.innerHTML = `<button class="card-del" onclick="delRow('${key}',${idx})">✕</button>${colsHtml}`;
+    card.querySelectorAll('input,select').forEach(inp=>{
+      const k = inp.getAttribute('data-k');
+      if(!k) return;
+      inp.addEventListener('input', ()=>{ row[k]=inp.value; markDirty(); });
+      inp.addEventListener('change', ()=>{ row[k]=inp.value; markDirty(); });
+    });
+    el.appendChild(card);
+  });
+}
+
+function delRow(key, idx){
+  state.rows[key].splice(idx,1);
+  renderCardList(key);
+  markDirty();
+}
+
+function addRow(key){
+  if(!state.rows[key]) state.rows[key]=[];
+  const schema = CARD_SCHEMAS[key];
+  const empty = {};
+  if(schema) schema.cols.forEach(c=>empty[c.k]='');
+  state.rows[key].push(empty);
+  renderCardList(key);
+  markDirty();
+}
+
+function renderAllCards(){
+  for(const key in CARD_SCHEMAS) renderCardList(key);
+}
+
+// ─── Tab switching (works for both sidebar + tabbar) ─────────────
+function switchTab(name){
+  document.querySelectorAll('.tabbtn,.sidebar-btn').forEach(b=>b.classList.toggle('active', b.getAttribute('data-tab')===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+name));
+  document.querySelector('#panels').scrollTop=0;
+}
+document.querySelectorAll('.tabbtn,.sidebar-btn').forEach(b=>{
+  b.addEventListener('click', ()=>switchTab(b.getAttribute('data-tab')));
+});
+
+// ─── updateHeroReadouts ──────────────────────────────────────────
+function updateHeroReadouts(){
+  const initEl = document.getElementById('roInit');
+  const initVal = initEl ? initEl.textContent : '—';
+  const physEl = document.getElementById('roPhys');
+  const stunEl = document.getElementById('roStun');
+  ['sideInit','portInit'].forEach(id=>{
+    const e=document.getElementById(id);
+    if(!e) return;
+    if(!initEl){ e.innerHTML='—'; return; }
+    // Build "VALUE W6" display from roInit
+    const initBonusVal = num(state.fields.initBonusVal);
+    const totalDice = Math.min(1 + initBonusVal, 5);
+    const REA = effVal('REA'), INT = effVal('INT');
+    const initNum = (REA||0) + (INT||0) + initBonusVal;
+    const REAb = num(state.attrs.REA), INTb = num(state.attrs.INT);
+    if(REAb === 0 && INTb === 0){ e.innerHTML='—'; return; }
+    e.innerHTML = initNum + '<small style="font-size:10px;color:var(--muted);font-weight:400;"> +' + totalDice + 'W6</small>';
+  });
+  ['sidePhys','portPhys'].forEach(id=>{ const e=document.getElementById(id); if(e&&physEl) e.textContent=physEl.textContent; });
+  ['sideStun','portStun'].forEach(id=>{ const e=document.getElementById(id); if(e&&stunEl) e.textContent=stunEl.textContent; });
+  const nameEl = document.querySelector('[data-field="charName"]');
+  if(nameEl){
+    ['sideCharName','portCharName'].forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent=nameEl.value||'Sulyvahn Lothric'; });
+  }
+}
+
+// ─── Portrait hero visibility ────────────────────────────────────
+function updateLayout(){
+  const portrait = window.matchMedia('(orientation:portrait)').matches || window.innerWidth < 768;
+  const heroEl = document.getElementById('portraitHero');
+  if(heroEl) heroEl.style.display = portrait ? '' : 'none';
+  // iOS Safari fix: explicitly set root and panels height to actual viewport
+  const root = document.getElementById('root');
+  if(root) root.style.height = window.innerHeight + 'px';
+  // Set panels max-height so it cannot expand beyond viewport
+  const fixedEls = document.querySelectorAll('.hero, .tabbar, .sidebar-nav + div, .hero-pills');
+  let usedH = 0;
+  fixedEls.forEach(el => { if(el && el.offsetHeight) usedH += el.offsetHeight; });
+  const panelsEl = document.getElementById('panels');
+  if(panelsEl){
+    const avail = window.innerHeight - (panelsEl.getBoundingClientRect().top);
+    panelsEl.style.maxHeight = Math.max(200, avail) + 'px';
+  }
+}
+window.addEventListener('resize', updateLayout);
+window.addEventListener('orientationchange', ()=>{ setTimeout(updateLayout, 100); });
+updateLayout();
+
+// ─── Override initAll to also render cards ────────────────────────
+const _origInitAll = typeof initAll === 'function' ? initAll : null;
+</script>
+<script>
+
+/* ---------------------- Offizielle SR6-Fertigkeitsliste (Kernregelwerk S. 94-99) ---------------------- */
+const DEFAULT_ACTIVE_SKILLS = [
+  {name:'Astral', attr:'INT (WIL)', rating:'', spec:''},
+  {name:'Athletik', attr:'AGI (STR)', rating:'', spec:''},
+  {name:'Beschwören', attr:'MAG', rating:'', spec:''},
+  {name:'Biotech', attr:'LOG (INT)', rating:'', spec:''},
+  {name:'Cracken', attr:'LOG', rating:'', spec:''},
+  {name:'Einfluss', attr:'CHA (LOG)', rating:'', spec:''},
+  {name:'Elektronik', attr:'LOG (INT)', rating:'', spec:''},
+  {name:'Exotische Waffen', attr:'AGI', rating:'', spec:''},
+  {name:'Feuerwaffen', attr:'AGI', rating:'', spec:''},
+  {name:'Heimlichkeit', attr:'AGI', rating:'', spec:''},
+  {name:'Hexerei', attr:'MAG', rating:'', spec:''},
+  {name:'Mechanik', attr:'LOG (AGI/INT)', rating:'', spec:''},
+  {name:'Nahkampf', attr:'AGI', rating:'', spec:''},
+  {name:'Natur', attr:'INT', rating:'', spec:''},
+  {name:'Steuern', attr:'REA', rating:'', spec:''},
+  {name:'Tasken', attr:'RES', rating:'', spec:''},
+  {name:'Überreden', attr:'CHA', rating:'', spec:''},
+  {name:'Verzaubern', attr:'MAG', rating:'', spec:''},
+  {name:'Wahrnehmung', attr:'INT (LOG)', rating:'', spec:''},
+];
+
+/* ---------------------- Row schema per table ---------------------- */
+const SCHEMAS = {
+  'skills-active': { table:'tbl-skills-active', cols:[
+    {k:'name', type:'text', ph:'z.B. Firearms'},
+    {k:'attr', type:'text', ph:'AGI'},
+    {k:'rating', type:'text', ph:'0'},
+    {k:'spec', type:'text', ph:'Spezialisierung'},
+  ]},
+  'skills-knowledge': { table:'tbl-skills-knowledge', cols:[
+    {k:'name', type:'text', ph:'z.B. Sicherheitsprozeduren'},
+    {k:'type', type:'select', options:['Wissen','Sprache'], ph:''},
+    {k:'rating', type:'text', ph:'0'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'derived-tests': { table:'tbl-derived-tests', cols:[
+    {k:'name', type:'text', ph:'z.B. Selbstbeherrschung'},
+    {k:'formula', type:'text', ph:'z.B. Willenskraft + Charisma'},
+    {k:'value', type:'text', ph:'0'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'weapons': { table:'tbl-weapons', cols:[
+    {k:'name', type:'text', ph:'Waffenname'},
+    {k:'dmg', type:'text', ph:'z.B. 4K'},
+    {k:'mode', type:'text', ph:'EM/HM/SM/AM'},
+    {k:'angriff', type:'text', ph:'10/13/10/–/–'},
+    {k:'ammo', type:'text', ph:'z.B. 6(tr)'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'gear': { table:'tbl-gear', cols:[
+    {k:'name', type:'text', ph:'Gegenstand'},
+    {k:'rating', type:'text', ph:''},
+    {k:'qty', type:'text', ph:'1'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'cyberware': { table:'tbl-cyberware', cols:[
+    {k:'name', type:'text', ph:'Implantat'},
+    {k:'rating', type:'text', ph:''},
+    {k:'essence', type:'text', ph:'0.0'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'vehicles': { table:'tbl-vehicles', cols:[
+    {k:'name', type:'text', ph:'Name'},
+    {k:'handling', type:'text', ph:''},
+    {k:'speed', type:'text', ph:''},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'wishlist': { table:'tbl-wishlist', cols:[
+    {k:'name', type:'text', ph:'Gegenstand'},
+    {k:'cost', type:'text', ph:'Kosten'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'spells': { table:'tbl-spells', cols:[
+    {k:'name', type:'text', ph:'Zaubername'},
+    {k:'category', type:'text', ph:'Combat/Health/...'},
+    {k:'type', type:'text', ph:'Physisch/Manifest'},
+    {k:'range', type:'text', ph:''},
+    {k:'duration', type:'text', ph:''},
+    {k:'drain', type:'text', ph:''},
+  ]},
+  'rituals': { table:'tbl-rituals', cols:[
+    {k:'name', type:'text', ph:'Ritualname'},
+    {k:'threshold', type:'text', ph:''},
+    {k:'time', type:'text', ph:''},
+    {k:'effect', type:'text', ph:'Effekt'},
+  ]},
+  'buffs': { table:'tbl-buffs', cols:[
+    {k:'source', type:'text', ph:'Quelle'},
+    {k:'type', type:'select', options:['Bonus','Malus'], ph:''},
+    {k:'effect', type:'text', ph:'Effekt'},
+  ]},
+  'programs': { table:'tbl-programs', cols:[
+    {k:'name', type:'text', ph:'Programmname'},
+    {k:'type', type:'text', ph:'Attack/Sleaze/...'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'agents': { table:'tbl-agents', cols:[
+    {k:'name', type:'text', ph:'Name'},
+    {k:'rating', type:'text', ph:''},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'qual-pos': { table:'tbl-qual-pos', cols:[
+    {k:'name', type:'text', ph:'Qualität'},
+    {k:'cost', type:'text', ph:'Karma'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'qual-neg': { table:'tbl-qual-neg', cols:[
+    {k:'name', type:'text', ph:'Qualität'},
+    {k:'cost', type:'text', ph:'Karma'},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'contacts': { table:'tbl-contacts', cols:[
+    {k:'name', type:'text', ph:'Name'},
+    {k:'role', type:'text', ph:'Rolle'},
+    {k:'connection', type:'text', ph:''},
+    {k:'loyalty', type:'text', ph:''},
+    {k:'notes', type:'text', ph:''},
+  ]},
+  'expenses': { table:'tbl-expenses', cols:[
+    {k:'name', type:'text', ph:'Posten'},
+    {k:'cost', type:'text', ph:''},
+    {k:'notes', type:'text', ph:''},
+  ]},
+};
+
+/* ---------------------- State ---------------------- */
+let state = {
+  "fields": {
+    "charName": "Sulyvahn Lothric",
+    "metatype": "Elf / Dalakitnon",
+    "fassade": "Novize der Ordo Maximus",
+    "edgeAvail": "3",
+    "essenz": "6",
+    "karma": "4 / —",
+    "nuyen": "10.000¥ (laut Bogen, ca.)",
+    "herkunft": "",
+    "armorItem": "Urban Explorer Overall",
+    "armorMods": "Verteidigungswertbonus +4, Kapazität 6",
+    "tradition": "Hermetische Hämatomantie (Ordo Maximus)",
+    "drainAttr": "",
+    "initGrad": "2",
+    "mentorSpirit": "Der Blutgraf",
+    "geas": "Geas gebunden an: Manablitz",
+    "mentorDetails": "TRADITION — Hermetische Hämatomantie (Ordo Maximus)\n\"Blut ist kein Opfer. Es ist der vollkommenste Leiter für Mana.\"\nGeister sind Werkzeuge, nicht Verbündete. Wahre Macht entsteht durch Disziplin, Wissen und die Beherrschung von Leben und Tod.\n\nGeas — Blutzoll: Bei Manablitz muss Sulyvahn ≥1 Kästchen Körperschaden haben → +1 Edge auf gebundene Fähigkeit. Bruch → −1 Magie für 24h.",
+    "deckModel": "Transys Avalon (Kommlink)",
+    "livingPersona": "",
+    "matAttack": "",
+    "matSleaze": "",
+    "matData": "3",
+    "matFirewall": "1",
+    "matInit": "",
+    "lifestyleType": "",
+    "lifestyleCost": "",
+    "lifestylePaid": "",
+    "lifestyleDetails": "",
+    "senseorbGeraet": "6",
+    "senseorbSlots": "12",
+    "senseorbSensor": "Stufe 6 (alle verfügbaren und nicht verfügbaren Sensoren)",
+    "senseorbAngriff": "9",
+    "senseorbSchleicher": "4",
+    "senseorbDaten": "+6",
+    "senseorbFirewall": "-3",
+    "senseorbDetails": "Verschlüsselter Write-Only-Datenspeicher:\nStark verschlüsselter Write-Only-Datenspeicher. Mit einer Nebenhandlung kann sein Inhalt auf einen RFID-Chip gebrannt und ausgegeben oder gelöscht werden — anderweitig kann nicht darauf zugegriffen werden.\n\nSensorik im Host:\nWenn sich das Deck physisch im AR-Raum des Hosts befindet: +1 Edge bei allen anspruchsvollen/illegalen Matrixhandlungen im Host.\n\nModifiziertes Matrix-Relais:\nDas Gerät kann aus einer Entfernung von bis zu Stufe × 50m bedient werden, sofern kein Rauschen > Stufe herrscht. Angriff und Schleicher lassen sich bei Benutzung des Decks nicht tauschen. Die Firewall ist rudimentär, es gibt keinen SIN-Lock — stattdessen nur ein einfaches Fingerabdrucksystem, rücksetzbar mit ausgedehnter Probe auf Elektronik + Logik (Schwelle 4).\nDas Matrix-Relais muss direkt in der Cyberbuchse stecken, kostet 5.000¥ pro Stufe und wird mit höherer Stufe zunehmend größer (Stufe × Stufe × 250g).\n\nAbsolute Detection Modus:\nAlle Sensoren und Prozessoren fahren auf Maximalleistung, alles andere wird abgeschaltet.\n- Datenverarbeitung +3 (zusätzlich zum Basiswert)\n- Schleicher geht auf 0\n- Jegliche Matrixkommunikation im Umkreis von 100m wird auf den verschlüsselten Write-Only-Speicher aufgezeichnet; Kommunikation mit Verschlüsselungsstufe ≤ 6 wird automatisch entschlüsselt.\n- Das Deck spannt einen kleinen, öffentlich sichtbaren Host auf, in dem die eingehenden (entschlüsselten) Datenströme live beobachtet, gelesen und/oder kopiert werden können, bevor sie weggespeichert werden.\n- Mit Haupthandlung + Probe auf Elektronik + Logik (Schwelle 3) kann jeder einen bestimmten Datenstrom (z.B. von einem Gerät) ausschließen; bis dahin aufgezeichnete Daten bleiben intakt.\n\nLore:\nUrsprünglich ein Forschungsprojekt der Technovasiven Universität Düsseldorf, in der Nähe von 3 wichtigen Routing-Masten umgesetzt, um den gesamten durchfließenden Datenverkehr zu analysieren, entschlüsseln und aufzuzeichnen. Auf Sicherheit/Bedienbarkeit wurde kein Wert gelegt — dafür ist die reine Rechen- und Sensorleistung konkurrenzlos. In verstreuten Datenvaults finden sich Baupläne, halb abgesicherte Architekturen, inaktive Scannerskripte und Entwürfe für das modifizierte Matrix-Relais.",
+    "initBonusVal": "",
+    "astralTradAttr": "LOG"
+  },
+  "attrs": {
+    "BOD": "3",
+    "AGI": "2",
+    "REA": "2",
+    "STR": "1",
+    "WIL": "6",
+    "LOG": "6",
+    "INT": "5",
+    "CHA": "1",
+    "EDG": "3",
+    "MAGRES": "8",
+    "RUEST": "4",
+    "GERAET": "6",
+    "ASTRUEST": "0"
+  },
+  "rows": {
+    "skills-active": [
+      {
+        "name": "Astral",
+        "attr": "INT (WIL)",
+        "rating": "5",
+        "spec": ""
+      },
+      {
+        "name": "Athletik",
+        "attr": "AGI (STR)",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Beschwören",
+        "attr": "MAG",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Biotech",
+        "attr": "LOG (INT)",
+        "rating": "3",
+        "spec": ""
+      },
+      {
+        "name": "Cracken",
+        "attr": "LOG",
+        "rating": "5",
+        "spec": ""
+      },
+      {
+        "name": "Einfluss",
+        "attr": "CHA (LOG)",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Elektronik",
+        "attr": "LOG (INT)",
+        "rating": "5",
+        "spec": ""
+      },
+      {
+        "name": "Exotische Waffen",
+        "attr": "AGI",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Feuerwaffen",
+        "attr": "AGI",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Heimlichkeit",
+        "attr": "AGI",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Hexerei",
+        "attr": "MAG",
+        "rating": "7",
+        "spec": "Spruchzauberei (Expertise)"
+      },
+      {
+        "name": "Mechanik",
+        "attr": "LOG (AGI/INT)",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Nahkampf",
+        "attr": "AGI",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Natur",
+        "attr": "INT",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Steuern",
+        "attr": "REA",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Tasken",
+        "attr": "RES",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Überreden",
+        "attr": "CHA",
+        "rating": "",
+        "spec": ""
+      },
+      {
+        "name": "Verzaubern",
+        "attr": "MAG",
+        "rating": "3",
+        "spec": ""
+      },
+      {
+        "name": "Wahrnehmung",
+        "attr": "INT (LOG)",
+        "rating": "3",
+        "spec": ""
+      }
+    ],
+    "skills-knowledge": [
+      {
+        "name": "Magiekunde",
+        "type": "Wissen",
+        "rating": "2",
+        "notes": ""
+      },
+      {
+        "name": "Konzernwissen",
+        "type": "Wissen",
+        "rating": "2",
+        "notes": ""
+      },
+      {
+        "name": "Untergrundwissen",
+        "type": "Wissen",
+        "rating": "2",
+        "notes": ""
+      },
+      {
+        "name": "Deutsch",
+        "type": "Sprache",
+        "rating": "Muttersprachler",
+        "notes": ""
+      },
+      {
+        "name": "Englisch",
+        "type": "Sprache",
+        "rating": "2",
+        "notes": ""
+      }
+    ],
+    "weapons": [],
+    "gear": [
+      {
+        "name": "Urban Explorer Overall",
+        "rating": "",
+        "qty": "1",
+        "notes": "Verteidigungswertbonus +4, Kapazität 6 (Regelwerk-Basiswert: +3 — ggf. eigene Modifikation, bitte prüfen). Gepanzerte Automatenkleidung für Kuriere/Freerunner, inkl. eingebautem Musikplayer und Vitalmonitor. Verfügbarkeit 2, Grundpreis 800¥."
+      },
+      {
+        "name": "Troden (eingebaut)",
+        "rating": "",
+        "qty": "1",
+        "notes": "Gerätestufe 3, Verfügbarkeit 1, 70¥. Netz aus Elektroden/Ultraschallsendern, verleiht direktes Neuralinterface (DNI) — ermöglicht Zugriff auf Sim-Module ohne Datenbuchse oder implantiertes Kommlink."
+      },
+      {
+        "name": "SIM-Modul",
+        "rating": "",
+        "qty": "1",
+        "notes": "Internes Upgrade für volle Simsinn-Erfahrung (Simsinn-Programme, vollsensorische AR/VR); Zugriff erfordert DNI (Troden, Datenbuchse oder implantiertes Kommlink). Gerätestufe 3, Verfügbarkeit 2, 100¥ (heißes Sim: Verfügbarkeit 2I, 250¥)."
+      },
+      {
+        "name": "Subvokales Mikrofon",
+        "rating": "",
+        "qty": "1",
+        "notes": "Hautfarbener Halsaufkleber für subvokale Kommunikation ohne erkennbare Lippenbewegung. Mithörer erhalten/setzen kein Edge für ihre Wahrnehmungsprobe ein. Gerätestufe 3, Verfügbarkeit 2, 50¥."
+      },
+      {
+        "name": "Gefälschte SIN",
+        "rating": "",
+        "qty": "1",
+        "notes": "Fälschung einer System-Identifikationsnummer (Stufen 1-6). Verifizierungssysteme würfeln Probe auf Stufe×2 gegen die SIN-Stufe (mobile Systeme bis Stufe 3, stationäre bis Stufe 8). Nutzung hinterlässt Datenspur; bei krimineller Nutzung Wegwerfartikel. Stufe im Bogen nicht angegeben — bitte ergänzen."
+      },
+      {
+        "name": "Grimoire: Academia Sanguis Aeternum",
+        "rating": "",
+        "qty": "1",
+        "notes": "Ordo Maximus"
+      },
+      {
+        "name": "Zauberfokus",
+        "rating": "Stufe 7",
+        "qty": "1",
+        "notes": ""
+      },
+      {
+        "name": "Siegelring (Geas-Fokus)",
+        "rating": "",
+        "qty": "1",
+        "notes": "Talisman/Geas-Gegenstand"
+      },
+      {
+        "name": "Kommlink: Transys Avalon",
+        "rating": "",
+        "qty": "1",
+        "notes": "Matrixwerte s. Matrix-Tab"
+      }
+    ],
+    "cyberware": [],
+    "vehicles": [],
+    "spells": [
+      {
+        "name": "Attribut Steigern",
+        "category": "Heilzauber",
+        "type": "P",
+        "range": "B",
+        "duration": "A",
+        "drain": "3",
+        "spruch": "Sanguis vinculum, corpus transcende. (Blut als Band, überschreite den Körper.)"
+      },
+      {
+        "name": "Reflexe Steigern",
+        "category": "Heilzauber",
+        "type": "P",
+        "range": "B",
+        "duration": "A",
+        "drain": "5",
+        "spruch": "Tempus meum, non tuum. (Meine Zeit, nicht deine.)"
+      },
+      {
+        "name": "Levitieren",
+        "category": "Manipulation",
+        "type": "P",
+        "range": "BF",
+        "duration": "A",
+        "drain": "6",
+        "spruch": "Gravitas cedit voluntati. (Die Schwere weicht dem Willen.)"
+      },
+      {
+        "name": "Verbesserte Unsichtbarkeit",
+        "category": "Illusion (Monosensorisch)",
+        "type": "P",
+        "range": "B",
+        "duration": "A",
+        "drain": "4",
+        "spruch": "Umbra sanguinis, vela me. (Schatten des Blutes, verhülle mich.)"
+      },
+      {
+        "name": "Stein Beleben",
+        "category": "Manipulation",
+        "type": "P",
+        "range": "BF",
+        "duration": "ZB",
+        "drain": "5",
+        "spruch": "Lapis, surge. Servus meus esto. (Stein, erhebe dich. Sei mein Diener.)"
+      },
+      {
+        "name": "Vacuum",
+        "category": "Manipulation (Deus Ex Arcana, S.107)",
+        "type": "P",
+        "range": "LOS (A)",
+        "duration": "S",
+        "drain": "6",
+        "spruch": "Aer fugit. Nihil restat. (Die Luft flieht. Nichts bleibt.)"
+      },
+      {
+        "name": "Zauberfinger",
+        "category": "Manipulation",
+        "type": "P",
+        "range": "BF",
+        "duration": "A",
+        "drain": "4",
+        "spruch": "Manus invisibilis, obedi. (Unsichtbare Hand, gehorche.)"
+      },
+      {
+        "name": "Manablitz",
+        "category": "Kampf, Direkt (Schaden K) — Verteidigung: WIL+INT",
+        "type": "M",
+        "range": "BF",
+        "duration": "S",
+        "drain": "4",
+        "spruch": "Ex cruore, fulmen. — MIT Kanalisierung: Caro mea pretium est. Ex cruore, fulmen."
+      },
+      {
+        "name": "Manaball",
+        "category": "Kampf, Direkt/Flächenwirkung (Schaden K) — Verteidigung: WIL+INT",
+        "type": "M",
+        "range": "BF (F)",
+        "duration": "S",
+        "drain": "5",
+        "spruch": "Omnes cadent. Sanguis iudicat. — MIT Kanalisierung: Caro mea pretium est. Omnes cadent. Sanguis iudicat."
+      },
+      {
+        "name": "Leben Entdecken",
+        "category": "Wahrnehmung",
+        "type": "M",
+        "range": "B",
+        "duration": "A",
+        "drain": "3",
+        "spruch": "Pulsus cordis, revela te. (Herzschlag, offenbare dich.)"
+      },
+      {
+        "name": "Klebstoff",
+        "category": "Manipulation",
+        "type": "P",
+        "range": "BF",
+        "duration": "A",
+        "drain": "Speziell",
+        "spruch": "Mane. Non tua voluntas hic valet. (Bleib. Dein Wille gilt hier nicht.)"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Babymonitor",
+        "type": "",
+        "notes": ""
+      },
+      {
+        "name": "Schmöker",
+        "type": "",
+        "notes": ""
+      },
+      {
+        "name": "Tarnkappe",
+        "type": "",
+        "notes": ""
+      }
+    ],
+    "agents": [],
+    "qual-pos": [
+      {
+        "name": "Analytical Mind",
+        "cost": "",
+        "notes": "Bonus Edge bei logikbasierten Proben. Kein Drain."
+      },
+      {
+        "name": "Focused Concentration (3)",
+        "cost": "",
+        "notes": "1 Zauber ohne Malus aufrechterhalten (max. DV 7)"
+      },
+      {
+        "name": "Low Light Vision",
+        "cost": "",
+        "notes": ""
+      }
+    ],
+    "qual-neg": [
+      {
+        "name": "Allergie (Gewürze, mittel)",
+        "cost": "",
+        "notes": "-2W auf Proben mit körperlichen Attributen bei Kontakt"
+      },
+      {
+        "name": "Gender Transmorphism",
+        "cost": "",
+        "notes": ""
+      },
+      {
+        "name": "Elf Poser",
+        "cost": "",
+        "notes": "Elfen, Orks und Trolle erhalten 1 Edge bei Einfluss(Etikette)-Proben gegen dich"
+      }
+    ],
+    "contacts": [
+      {
+        "name": "Professor Dr. Matrix",
+        "role": "",
+        "connection": "4",
+        "loyalty": "1",
+        "notes": ""
+      },
+      {
+        "name": "Ordo Maximus",
+        "role": "",
+        "connection": "7",
+        "loyalty": "1",
+        "notes": ""
+      },
+      {
+        "name": "Harland Jones",
+        "role": "",
+        "connection": "4",
+        "loyalty": "2",
+        "notes": ""
+      }
+    ],
+    "expenses": [],
+    "buffs": [
+      {
+        "source": "Tradition: Sanguine Kanalisierung",
+        "type": "Bonus",
+        "effect": "1x/Zauber: 1 Kästchen nicht red. körperl. Schaden vor Entzugsprobe → verursachter Schaden am Ziel +1"
+      },
+      {
+        "source": "Tradition: Herrschaft statt Bündnis",
+        "type": "Malus",
+        "effect": "-2 Würfel auf alle Beschwörungsproben"
+      },
+      {
+        "source": "Mentor: Der Blutgraf",
+        "type": "Bonus",
+        "effect": "+2 Einschüchterung & Selbstbeherrschung (bei Blut/Tod/Furcht)"
+      },
+      {
+        "source": "Mentor: Der Blutgraf",
+        "type": "Bonus",
+        "effect": "+1 Etikette (elitäre/akademische Kreise)"
+      },
+      {
+        "source": "Mentor: Arroganz der Ewigen",
+        "type": "Malus",
+        "effect": "-1 soziale Proben bei Überheblichkeit gg. magisch/gesellschaftlich Unterlegene"
+      },
+      {
+        "source": "Analytical Mind",
+        "type": "Bonus",
+        "effect": "Bonus-Edge bei logikbasierten Proben, kein Drain"
+      },
+      {
+        "source": "Focused Concentration (3)",
+        "type": "Bonus",
+        "effect": "1 Zauber ohne Malus aufrechterhalten (max. DV 7)"
+      },
+      {
+        "source": "Low Light Vision",
+        "type": "Bonus",
+        "effect": "Sicht bei Schwachlicht"
+      },
+      {
+        "source": "Allergie (Gewürze, mittel)",
+        "type": "Malus",
+        "effect": "-2 Würfel auf Proben mit körperlichen Attributen bei Kontakt"
+      },
+      {
+        "source": "Elf Poser",
+        "type": "Malus",
+        "effect": "Elfen, Orks, Trolle erhalten 1 Edge bei Einfluss(Etikette)-Proben gegen dich"
+      }
+    ],
+    "rituals": [
+      {
+        "name": "Lost and Found",
+        "threshold": "3 + Objektresistenz (Hermetische Tradition: -2)",
+        "time": "2 Std. (Hermetische Tradition: 1 Std.)",
+        "effect": "Verankertes Ritual mit Materieller Verbindung zur gesuchten Person/Objekt. Beseeltes Objekt (traditionell simpel, z.B. unbearbeiteter Kristall = Objektresistenz 3) wird zum Kompass zum Ziel, wirkt von Sonnenauf- bis -untergang. Gewährt Edge-Pool = Nettoerfolge für Outdoors(Spurenlesen)-Proben oder die Geisterkraft Suchen."
+      }
+    ],
+    "wishlist": [
+      {
+        "name": "Cyberarm",
+        "cost": "20.000¥ + 1,2 Essenz",
+        "notes": "Geplante Anschaffung, noch nicht eingebaut"
+      }
+    ],
+    "derived-tests": [
+      {
+        "name": "Selbstbeherrschung",
+        "formula": "Willenskraft + Charisma",
+        "value": "7",
+        "notes": ""
+      },
+      {
+        "name": "Menschenkenntnis",
+        "formula": "Willenskraft + Intuition",
+        "value": "11",
+        "notes": ""
+      },
+      {
+        "name": "Erinnerungsvermögen",
+        "formula": "Logik + Intuition",
+        "value": "14",
+        "notes": "Rechnerisch wären LOG+INT=11 — Bogen listet 14, evtl. Quality/Bonus. Bitte prüfen."
+      }
+    ]
+  },
+  "monitors": {
+    "phys": [],
+    "stun": [],
+    "matrix": []
+  },
+  "mods": {},
+  "calc": {}
+};
+for(const key in SCHEMAS){ if(!state.rows[key]) state.rows[key] = []; }
+
+let saveTimer = null;
+function markDirty(){
+  const ind = document.getElementById('saveIndicator');
+  ind.textContent = 'speichere...';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    persist();
+    ind.textContent = 'gespeichert ' + new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  }, 400);
+}
+
+function persist(){
+  try{ localStorage.setItem('sr6_charsheet_sulyvahn_ipad_v26', JSON.stringify(state)); }catch(e){}
+}
+
+/* ---------------------- Row rendering ---------------------- */
+function renderTable(key){
+  const schema = SCHEMAS[key];
+  if(!schema) return;
+  const tbody = document.querySelector('#'+schema.table+' tbody');
+  if(!tbody){ if(typeof renderCardList==='function') renderCardList(key); return; }
+  tbody.innerHTML = '';
+  state.rows[key].forEach((row, idx)=>{
+    const tr = document.createElement('tr');
+    schema.cols.forEach(col=>{
+      const td = document.createElement('td');
+      let el;
+      if(col.type === 'select'){
+        el = document.createElement('select');
+        const blank = document.createElement('option'); blank.value=''; blank.textContent='—';
+        el.appendChild(blank);
+        col.options.forEach(o=>{
+          const opt = document.createElement('option'); opt.value=o; opt.textContent=o;
+          if(row[col.k]===o) opt.selected = true;
+          el.appendChild(opt);
+        });
+      } else {
+        el = document.createElement('input');
+        el.type = 'text';
+        el.placeholder = col.ph || '';
+        el.value = row[col.k] || '';
+      }
+      el.addEventListener('input', ()=>{ row[col.k] = el.value; markDirty(); });
+      el.addEventListener('change', ()=>{ row[col.k] = el.value; markDirty(); });
+      td.appendChild(el);
+      tr.appendChild(td);
+    });
+    const tdDel = document.createElement('td');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'row-del'; delBtn.textContent = '✕';
+    delBtn.onclick = ()=>{ state.rows[key].splice(idx,1); renderTable(key); markDirty(); };
+    tdDel.appendChild(delBtn);
+    tr.appendChild(tdDel);
+    tbody.appendChild(tr);
+  });
+}
+
+function addRow(key){
+  const schema = SCHEMAS[key];
+  const empty = {};
+  schema.cols.forEach(c=>empty[c.k]='');
+  state.rows[key].push(empty);
+  renderTable(key);
+  markDirty();
+}
+
+function renderAllTables(){ for(const key in SCHEMAS){ renderTable(key); } }
+
+/* ---------------------- Fields & Attributes ---------------------- */
+function bindFields(){
+  const derivedFields = ['initBonusVal','astralTradAttr'];
+  document.querySelectorAll('[data-field]').forEach(el=>{
+    const key = el.getAttribute('data-field');
+    el.value = state.fields[key] || '';
+    el.addEventListener('input', ()=>{
+      state.fields[key] = el.value;
+      markDirty();
+      if(key==='charName') updateHeroName();
+      if(derivedFields.includes(key)) recomputeDerived();
+    });
+    el.addEventListener('change', ()=>{
+      state.fields[key] = el.value;
+      markDirty();
+      if(derivedFields.includes(key)) recomputeDerived();
+    });
+  });
+  updateHeroName();
+}
+
+function applyLifestyleCost(val){
+  if(val === '') return;
+  const num = parseInt(val, 10);
+  const formatted = num.toLocaleString('de-DE') + '¥';
+  const el = document.querySelector('[data-field="lifestyleCost"]');
+  if(el){ el.value = formatted; state.fields.lifestyleCost = formatted; markDirty(); }
+}
+
+function updateHeroName(){
+  document.title = (state.fields.charName ? state.fields.charName + ' — ' : '') + 'Shadowrun 6E Charakterbogen';
+}
+
+function bindAttrs(){
+  document.querySelectorAll('[data-attr]').forEach(el=>{
+    const key = el.getAttribute('data-attr');
+    el.value = state.attrs[key] !== undefined ? state.attrs[key] : '';
+    el.addEventListener('input', ()=>{
+      state.attrs[key] = el.value;
+      recomputeDerived();
+      markDirty();
+    });
+  });
+  // No [data-mod] inputs in iPad version — steppers only. Init displays:
+  refreshAllModDisplays();
+  // Init reflex stepper display
+  const reflexVal = num(state.fields.initBonusVal);
+  const reflexDisp = document.getElementById('initBonusDisplay');
+  if(reflexDisp){
+    reflexDisp.textContent = reflexVal;
+    reflexDisp.style.color = reflexVal > 0 ? 'var(--gold)' : 'var(--muted)';
+  }
+  const hiddenReflex = document.querySelector('[data-field="initBonusVal"]');
+  if(hiddenReflex) hiddenReflex.value = reflexVal;
+  recomputeDerived();
+}
+
+function resetMods(){
+  state.mods = {};
+  refreshAllModDisplays();
+  state.fields.initBonusVal = '0';
+  const reflexDisp = document.getElementById('initBonusDisplay');
+  if(reflexDisp){ reflexDisp.textContent = '0'; reflexDisp.style.color = 'var(--muted)'; }
+  const hiddenReflex = document.querySelector('[data-field="initBonusVal"]');
+  if(hiddenReflex) hiddenReflex.value = '0';
+  recomputeDerived();
+  markDirty();
+}
+
+function effVal(key){ return num(state.attrs[key]) + num(state.mods[key]); }
+
+function updateEffDisplay(key){
+  const el = document.getElementById('eff-'+key);
+  if(!el) return;
+  const base = num(state.attrs[key]);
+  const mod = num(state.mods[key]);
+  if(mod !== 0){
+    el.textContent = '= ' + (base+mod);
+    el.classList.add('active');
+  } else {
+    el.textContent = '';
+    el.classList.remove('active');
+  }
+}
+
+function num(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+function recomputeDerived(){
+  const REA = effVal('REA'), INTU = effVal('INT');
+  const BOD_base = num(state.attrs.BOD), WIL_base = num(state.attrs.WIL);
+  const BOD = effVal('BOD'), WIL = effVal('WIL');
+  const RUEST = num(state.attrs.RUEST);
+  const GERAET = num(state.attrs.GERAET);
+  const initBonusVal = num(state.fields.initBonusVal);
+
+  ['BOD','AGI','REA','STR','WIL','LOG','INT','CHA','EDG','MAGRES'].forEach(updateEffDisplay);
+
+  const hasInit = (state.attrs.REA!==undefined && state.attrs.REA!=='') || (state.attrs.INT!==undefined && state.attrs.INT!=='');
+  const init = hasInit ? (REA + INTU + initBonusVal) : null;
+  const totalDice = Math.min(1 + initBonusVal, 5);
+  const diceNote = initBonusVal > 0 ? (', ' + totalDice + 'W6 gesamt (1W6 Basis + ' + initBonusVal + 'W6, Obergrenze 5W6)') : '';
+  document.getElementById('roInit').innerHTML = (init!==null ? init : '—') + ' <span>(REA+INT' + (initBonusVal? ' +'+initBonusVal+' Bonus':'') + ', +1W6 im Kampf' + diceNote + ')</span>';
+
+  const physSize = BOD_base > 0 ? Math.ceil(BOD_base/2) + 8 : 0;
+  const stunSize = WIL_base > 0 ? Math.ceil(WIL_base/2) + 8 : 0;
+  resizeMonitor('phys', physSize);
+  resizeMonitor('stun', stunSize);
+  renderMonitor('phys', 'physBoxes');
+  renderMonitor('stun', 'stunBoxes');
+  const physMarked = state.monitors.phys.filter(Boolean).length;
+  const stunMarked = state.monitors.stun.filter(Boolean).length;
+  document.getElementById('roPhys').textContent = physSize ? (physMarked+'/'+physSize) : '—/—';
+  document.getElementById('roStun').textContent = stunSize ? (stunMarked+'/'+stunSize) : '—/—';
+
+  // Würfelpoolmalus: -1 pro voll gefüllter Dreierreihe, je Monitor, summiert
+  const malus = Math.floor(physMarked/3) + Math.floor(stunMarked/3);
+  const roMalusEl = document.getElementById('roMalus');
+  if(roMalusEl){
+    roMalusEl.textContent = malus > 0 ? ('-'+malus) : '0';
+  }
+  const roDeathEl = document.getElementById('roDeath');
+  if(roDeathEl){
+    roDeathEl.innerHTML = (BOD_base>0 ? (BOD_base*2) : '—') + ' <span>(Überzähliger Schaden ≥ KON × 2)</span>';
+  }
+
+  // Überzählig-Monitor: KON × 2 Kästchen, rot gefärbt als Todes-Warnung
+  const overSize = BOD_base > 0 ? BOD_base * 2 : 0;
+  if(!state.monitors.over) state.monitors.over = [];
+  resizeMonitor('over', overSize);
+  const overBoxesEl = document.getElementById('overBoxes');
+  if(overBoxesEl) renderMonitor('over', 'overBoxes', true);
+
+  // Verteidigungswert (KON + Rüstungsbonus) und Schadenswiderstand (nur KON) — nutzen Effektivwert
+  const roDefenseEl = document.getElementById('roDefense');
+  if(roDefenseEl){
+    roDefenseEl.innerHTML = (BOD>0 ? (BOD+RUEST) : '—') + ' <span>(KON + Rüstungsbonus)</span>';
+  }
+  const roSoakEl = document.getElementById('roSoak');
+  if(roSoakEl){
+    roSoakEl.innerHTML = (BOD>0 ? BOD : '—') + ' <span>(nur KON, keine Rüstung)</span>';
+  }
+
+  // Astralkampf: Angriffswert (Magie+Traditionsattribut), Verteidigungswert (Intuition+astrale Rüstung), Initiative (Logik+Intuition+3W6)
+  const MAGRES = effVal('MAGRES');
+  const LOG = effVal('LOG');
+  const ASTRUEST = num(state.attrs.ASTRUEST);
+  const tradAttrKey = state.fields.astralTradAttr;
+  const tradAttrVal = tradAttrKey ? effVal(tradAttrKey) : 0;
+  const tradAttrLabel = tradAttrKey === 'LOG' ? 'Logik' : (tradAttrKey === 'CHA' ? 'Charisma' : 'Traditionsattribut');
+
+  const roAstralAtkEl = document.getElementById('roAstralAtk');
+  if(roAstralAtkEl){
+    roAstralAtkEl.innerHTML = (tradAttrKey && MAGRES>0 ? (MAGRES+tradAttrVal) : '—') + ' <span>(Magie + ' + tradAttrLabel + ')</span>';
+  }
+  const roAstralDefEl = document.getElementById('roAstralDef');
+  if(roAstralDefEl){
+    roAstralDefEl.innerHTML = (INTU>0 || ASTRUEST>0 ? (INTU+ASTRUEST) : '—') + ' <span>(Intuition + astrale Panzerung)</span>';
+  }
+  const roAstralInitEl = document.getElementById('roAstralInit');
+  if(roAstralInitEl){
+    const astralInit = LOG + INTU + initBonusVal;
+    const astralTotalDice = Math.min(3 + initBonusVal, 5);
+    const astralDiceNote = initBonusVal > 0 ? (', ' + astralTotalDice + 'W6 gesamt (3W6 Basis + ' + initBonusVal + 'W6, Obergrenze 5W6)') : ', +3W6';
+    roAstralInitEl.innerHTML = (LOG>0 || INTU>0 ? astralInit : '—') + ' <span>(Logik + Intuition' + (initBonusVal? ' +'+initBonusVal+' Bonus':'') + astralDiceNote + ')</span>';
+  }
+
+  // Matrix-Zustandsmonitor: 8 + Gerätestufe/2 aufgerundet
+  const matrixSize = GERAET > 0 ? Math.ceil(GERAET/2) + 8 : 0;
+  if(!state.monitors.matrix) state.monitors.matrix = [];
+  resizeMonitor('matrix', matrixSize);
+  const matrixBoxesEl = document.getElementById('matrixBoxes');
+  if(matrixBoxesEl) renderMonitor('matrix', 'matrixBoxes');
+
+  // Kampfzauber-Rechner (Entzugswiderstand-Pool etc.) mit aktualisieren, falls vorhanden
+  if(typeof computeKampfzauber === 'function' && document.getElementById('czSpell')){
+    computeKampfzauber();
+  }
+  // Update iPad hero readouts (safe: no-op if function not yet defined)
+  if(typeof updateHeroReadouts === 'function') updateHeroReadouts();
+}
+
+function resizeMonitor(key, size){
+  const arr = state.monitors[key];
+  if(arr.length < size){
+    while(arr.length < size) arr.push(false);
+  } else if(arr.length > size){
+    arr.length = size;
+  }
+}
+
+function renderMonitor(key, elId, danger){
+  const container = document.getElementById(elId);
+  if(!container) return;
+  container.innerHTML = '';
+  state.monitors[key].forEach((marked, idx)=>{
+    const box = document.createElement('div');
+    const dangerClass = danger ? ' danger' : '';
+    box.className = 'box' + dangerClass + (marked ? ' marked':'') + (((idx+1)%3===0) ? ' mod3':'');
+    box.title = 'Kasten ' + (idx+1);
+    const toggle = ()=>{
+      if(state.monitors[key][idx]){
+        for(let i=idx;i<state.monitors[key].length;i++) state.monitors[key][i]=false;
+      } else {
+        for(let i=0;i<=idx;i++) state.monitors[key][i]=true;
+      }
+      window.recomputeDerived();
+      markDirty();
+    };
+    let _touchStartY = 0, _touchStartX = 0;
+    box.addEventListener('touchstart', (e)=>{ _touchStartY=e.touches[0].clientY; _touchStartX=e.touches[0].clientX; }, {passive:true});
+    box.addEventListener('touchend', (e)=>{
+      const dy = Math.abs(e.changedTouches[0].clientY - _touchStartY);
+      const dx = Math.abs(e.changedTouches[0].clientX - _touchStartX);
+      if(dy < 10 && dx < 10){ e.preventDefault(); toggle(); }
+    }, {passive:false});
+    box.addEventListener('click', toggle);
+    container.appendChild(box);
+  });
+}
+
+/* ---------------------- Tabs ---------------------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------------------- Export / Import / Reset ---------------------- */
+function exportJSON(){
+  const name = (state.fields.charName || 'charakter').trim().replace(/[^a-z0-9äöüß_\- ]/gi,'').replace(/\s+/g,'_') || 'charakter';
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'sr6_' + name + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const loaded = JSON.parse(e.target.result);
+      state = Object.assign({fields:{}, attrs:{}, mods:{}, calc:{}, rows:{}, monitors:{phys:[],stun:[],over:[],matrix:[]}}, loaded);
+      for(const key in SCHEMAS){ if(!state.rows[key]) state.rows[key] = []; }
+      initAll();
+      persist();
+    }catch(err){
+      alert('Datei konnte nicht gelesen werden: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function seedDefaultSkills(){
+  state.rows['skills-active'] = DEFAULT_ACTIVE_SKILLS.map(s => Object.assign({}, s));
+}
+
+function resetSheet(){
+  if(!confirm('Wirklich den gesamten Charakterbogen zurücksetzen? Das kann nicht rückgängig gemacht werden.')) return;
+  state = {fields:{}, attrs:{}, mods:{}, calc:{}, rows:{}, monitors:{phys:[],stun:[],over:[],matrix:[]}};
+  for(const key in SCHEMAS){ state.rows[key] = []; }
+  seedDefaultSkills();
+  initAll();
+  persist();
+}
+
+/* ---------------------- Init ---------------------- */
+function initAll(){
+  bindFields();
+  bindAttrs();
+  renderAllTables();
+  initKampfzauberCalc();
+}
+
+/* ---------------------- Kampfzauber-Rechner ---------------------- */
+function getHexereiRating(){
+  const rows = state.rows['skills-active'] || [];
+  const row = rows.find(r => r.name && r.name.trim().toLowerCase() === 'hexerei');
+  return row ? num(row.rating) : 0;
+}
+
+function initKampfzauberCalc(){
+  if(!state.calc) state.calc = {};
+  const spellEl = document.getElementById('czSpell');
+  const drainEl = document.getElementById('czBaseDrain');
+  const hochEl = document.getElementById('czHochdrehen');
+  const flaecheEl = document.getElementById('czFlaeche');
+  const sangEl = document.getElementById('czSanguine');
+  if(!spellEl) return;
+  spellEl.value = state.calc.spell || '';
+  drainEl.value = state.calc.baseDrain || '';
+  // restore stepper values and displays
+  const hochVal = parseInt(state.calc.hochdrehen)||0;
+  const flaecheVal = parseInt(state.calc.flaeche)||0;
+  if(hochEl) hochEl.value = hochVal;
+  if(flaecheEl) flaecheEl.value = flaecheVal;
+  const hochDisp = document.getElementById('czHochdrehen_display');
+  const flaecheDisp = document.getElementById('czFlaeche_display');
+  if(hochDisp){ hochDisp.textContent = hochVal; hochDisp.style.color = hochVal>0?'var(--purple)':'var(--muted)'; }
+  if(flaecheDisp){ flaecheDisp.textContent = flaecheVal; flaecheDisp.style.color = flaecheVal>0?'var(--purple)':'var(--muted)'; }
+  sangEl.checked = !!state.calc.sanguine;
+  computeKampfzauber();
+}
+
+function czApplyPreset(){
+  const val = document.getElementById('czSpell').value;
+  const drainEl = document.getElementById('czBaseDrain');
+  if(val === 'manablitz'){ drainEl.value = 4; }
+  else if(val === 'manaball'){ drainEl.value = 5; }
+  computeKampfzauber();
+}
+
+function computeKampfzauber(){
+  const spellEl = document.getElementById('czSpell');
+  const drainEl = document.getElementById('czBaseDrain');
+  const hochEl = document.getElementById('czHochdrehen');
+  const flaecheEl = document.getElementById('czFlaeche');
+  const sangEl = document.getElementById('czSanguine');
+  if(!spellEl) return;
+
+  const baseDrain = num(drainEl.value);
+  const hoch = num(hochEl.value);
+  const flaeche = num(flaecheEl.value);
+  const sanguine = sangEl.checked;
+
+  if(!state.calc) state.calc = {};
+  state.calc.spell = spellEl.value;
+  state.calc.baseDrain = drainEl.value;
+  state.calc.hochdrehen = hochEl.value;
+  state.calc.flaeche = flaecheEl.value;
+  state.calc.sanguine = sanguine;
+  markDirty();
+
+  const totalDrain = baseDrain + hoch*2 + flaeche*1;
+  const dmgBonus = hoch + (sanguine ? 1 : 0);
+  const maxAdjust = Math.max(effVal('MAGRES'), getHexereiRating());
+  const usedAdjust = hoch + flaeche;
+
+  document.getElementById('czTotalDrain').textContent = baseDrain>0 ? totalDrain : '—';
+  document.getElementById('czDamageBonus').textContent = '+' + dmgBonus;
+  const maxAdjustEl = document.getElementById('czMaxAdjust');
+  maxAdjustEl.innerHTML = maxAdjust + ' <span>(Magie/Hexerei, höherer Wert)</span>';
+
+  const warnEl = document.getElementById('czWarning');
+  if(maxAdjust > 0 && usedAdjust > maxAdjust){
+    warnEl.innerHTML = '<b style="color:var(--accent-combat)">Achtung:</b> ' + usedAdjust + ' Anpassungen gewählt, aber nur ' + maxAdjust + ' verfügbar (höherer Wert aus Magie/Hexerei).';
+  } else {
+    warnEl.textContent = '';
+  }
+
+  // Erwarteter Entzugsschaden
+  const tradAttrKeyDrain = state.fields.astralTradAttr;
+  const tradAttrValDrain = tradAttrKeyDrain ? effVal(tradAttrKeyDrain) : 0;
+  const tradAttrLabelDrain = tradAttrKeyDrain === 'LOG' ? 'Logik' : (tradAttrKeyDrain === 'CHA' ? 'Charisma' : 'Traditionsattribut');
+  const WIL = effVal('WIL');
+  const drainPool = WIL + tradAttrValDrain;
+  const magieVal = effVal('MAGRES');
+
+  const drainPoolEl = document.getElementById('czDrainPool');
+  if(drainPoolEl){
+    drainPoolEl.innerHTML = (tradAttrKeyDrain && (WIL>0||tradAttrValDrain>0) ? drainPool : '—') + ' <span>(WIL + ' + tradAttrLabelDrain + ')</span>';
+  }
+
+  const expDmgEl = document.getElementById('czExpectedDrainDmg');
+  const dmgTypeEl = document.getElementById('czDrainDmgType');
+  if(expDmgEl && dmgTypeEl){
+    if(tradAttrKeyDrain && drainPool > 0 && totalDrain > 0){
+      const dist = binomialDist(drainPool, 1/3);
+      let expected = 0;
+      for(let k=0; k<=drainPool; k++){
+        expected += dist[k] * Math.max(0, totalDrain - k);
+      }
+      expDmgEl.textContent = expected.toFixed(2);
+
+      const physThreshold = totalDrain - magieVal; // hits < physThreshold => physisch
+      if(physThreshold <= 0){
+        dmgTypeEl.innerHTML = 'Immer <b>Betäubung</b> (Entzug ≤ Magie)';
+      } else {
+        let pPhysical = 0;
+        for(let k=0; k<Math.min(physThreshold, drainPool+1); k++){
+          pPhysical += dist[k];
+        }
+        dmgTypeEl.innerHTML = 'Körperlich bei &lt;' + physThreshold + ' Erf. (' + (pPhysical*100).toFixed(1) + '%), sonst Betäubung';
+      }
+    } else {
+      expDmgEl.textContent = '—';
+      dmgTypeEl.textContent = '—';
+    }
+  }
+}
+
+function binomialDist(n, p){
+  // Gibt Array der Wahrscheinlichkeiten P(k) für k=0..n Erfolge zurück
+  const dist = new Array(n+1).fill(0);
+  for(let k=0; k<=n; k++){
+    dist[k] = binomCoeff(n,k) * Math.pow(p,k) * Math.pow(1-p, n-k);
+  }
+  return dist;
+}
+
+function binomCoeff(n,k){
+  if(k<0 || k>n) return 0;
+  let res = 1;
+  for(let i=0; i<k; i++){
+    res = res * (n-i) / (i+1);
+  }
+  return res;
+}
+
+(function boot(){
+  let hadSaved = false;
+  try{
+    const saved = localStorage.getItem('sr6_charsheet_sulyvahn_ipad_v26');
+    if(saved){
+      const parsed = JSON.parse(saved);
+      state = Object.assign({fields:{}, attrs:{}, mods:{}, calc:{}, rows:{}, monitors:{phys:[],stun:[],over:[],matrix:[]}}, parsed);
+      for(const key in SCHEMAS){ if(!state.rows[key]) state.rows[key] = []; }
+      hadSaved = true;
+    }
+  }catch(e){}
+  if(!state.rows['skills-active'] || state.rows['skills-active'].length === 0){
+    seedDefaultSkills();
+  }
+  initAll();
+})();
+
+</script>
+<script>
+// ─── Safety shim: guard all DOM writes ─────────────────────────
+// Some functions in the original JS do direct el.innerHTML = ... without null checks.
+// We patch them here once so all subsequent calls are safe.
+(function patchDOMSafety(){
+  // Wrap querySelectorAll-based writes by patching Element prototype setters
+  // is too broad - instead we override the specific problem: markDirty's saveIndicator
+  // The original markDirty does:  document.getElementById('saveIndicator').textContent = ...
+  // Our ghost element covers that. But we also need to guard querySelector('[data-field=...]')
+  // and any el.innerHTML = ... after a querySelector that might return null.
+  // Approach: patch innerHTML and textContent setters to be no-ops on null safely
+  // We do this by wrapping the original functions that are known to cause issues.
+})();
+
+// ─── Global safe DOM write helper ────────────────────────────────
+function safeSet(id, prop, val){
+  const el = document.getElementById(id);
+  if(el) el[prop] = val;
+}
+
+// Patch renderTable to no-op (no DOM tables in iPad version)
+function renderTable(key){
+  // In iPad version tables don't exist - render card list instead
+  if(key && typeof renderCardList === 'function') renderCardList(key);
+}
+function renderAllTables(){ renderAllCards(); }
+
+// recomputeDerived patching moved to block 2 (see below)
+// No wrapper needed here
+
+// After boot() runs, finish iPad-specific setup
+// Do NOT re-run bindAttrs/bindFields (already done in boot → initAll)
+// Only run iPad-specific additions
+window.addEventListener('load', ()=>{
+  try{
+    renderAllCards();
+    refreshAllModDisplays();
+    // Refresh reflex stepper display
+    const reflexVal = num(state.fields.initBonusVal);
+    const d = document.getElementById('initBonusDisplay');
+    if(d){ d.textContent = reflexVal||0; d.style.color = reflexVal>0?'var(--gold)':'var(--muted)'; }
+    updateHeroReadouts();
+    updateLayout();
+  } catch(e){ console.error(e); }
+});
+</script>
+</body>
+</html>
